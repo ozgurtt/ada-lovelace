@@ -25,11 +25,13 @@ function preload() {
 	game.load.image('ada', 'assets/ada.png');
 	game.load.image('punchcard', 'assets/punchcard.png');
 	game.load.image('ivo', 'assets/ivo.png');
+	game.load.image('exit-door','assets/blue-door.png');
 
 }
 
 var player;
 var platforms;
+var doors;
 var cursors;
 var machine;
 var gravity=900;
@@ -61,7 +63,13 @@ function create() {
 
     //  This stops it from falling away when you jump on it
     ground.body.immovable = true;
-
+	doors=game.add.group();
+	var exitDoor = doors.create(750, game.world.height - 130, 'exit-door');
+	exitDoor.scale.setTo(2,2);
+	
+	//exitDoor.body.immovable=true;
+	
+		
     //  Now let's create two ledges
     //var ledge = platforms.create(400, 400, 'ground');
     //ledge.body.immovable = true;
@@ -84,7 +92,7 @@ function create() {
 	//machine.body.bounce.y=0.2;
 	//machine.body.gravity.y=gravity;
 	machine.body.collideWorldBounds = true;
-	machine.body.immovable=true;
+	machine.body.immovable = true;
 	//TODO: When Ivo moves, set immovable false, and give it gravity.
 	
     //  Our two animations, walking left and right.
@@ -150,7 +158,7 @@ function update() {
 	game.physics.arcade.collide(player, machine,inputCode, null, this);
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
     game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
-	game.physics.arcade.overlap(player, machine, inputCode, null, this);
+	
     //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
 
