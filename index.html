@@ -64,10 +64,11 @@ function create() {
     //  This stops it from falling away when you jump on it
     ground.body.immovable = true;
 	doors=game.add.group();
-	var exitDoor = doors.create(750, game.world.height - 130, 'exit-door');
-	exitDoor.scale.setTo(2,2);
+	doors.enableBody=true;
+	var exitDoor = doors.create(700, game.world.height - 230, 'exit-door');
+	//exitDoor.scale.setTo(2,2);
 	
-	//exitDoor.body.immovable=true;
+	exitDoor.body.immovable=true;
 	
 		
     //  Now let's create two ledges
@@ -153,6 +154,7 @@ function update() {
 
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms);
+	game.physics.arcade.collide(player, doors);
     game.physics.arcade.collide(punchcards, platforms);
 	game.physics.arcade.collide(machine, platforms);
 	game.physics.arcade.collide(player, machine,inputCode, null, this);
