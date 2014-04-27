@@ -6,12 +6,12 @@ function preload() {
 
     game.load.image('estate', 'assets/estate-1.png');
     game.load.image('ground', 'assets/platform.png');
-    //game.load.image('star', 'assets/star.png');
+    game.load.image('introScreen', 'assets/intro-exterior.jpg');
     //game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 	game.load.image('ada', 'assets/ada.png');
 	game.load.image('punchcard', 'assets/punchcard.png');
 	game.load.image('ivo', 'assets/ivo.png');
-	game.load.image('exit-door','assets/blue-door.png');
+	game.load.image('exitDoor','assets/blue-door.png');
 
 }
 
@@ -28,7 +28,6 @@ var score = 0;
 var scoreText;
 
 function create() {
-
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -51,7 +50,7 @@ function create() {
     ground.body.immovable = true;
 	doors=game.add.group();
 	doors.enableBody=true;
-	var exitDoor = doors.create(700, game.world.height - 230, 'exit-door');
+	var exitDoor = doors.create(700, game.world.height - 230, 'exitDoor');
 	//exitDoor.scale.setTo(2,2);
 	
 	exitDoor.body.immovable=true;
