@@ -96,7 +96,7 @@ var mainState = {
 }
 var level2 = {
 
-    preload: function() {
+    /*preload: function() {
     game.load.image('library', 'assets/library.jpg');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('introScreen', 'assets/intro-exterior.jpg');
@@ -105,7 +105,7 @@ var level2 = {
 	game.load.image('ivo', 'assets/ivo.png');
 	game.load.image('exitDoor','assets/blue-door.png');
 	game.load.image('punchcardMenu','assets/punchcard-menu.jpg');
-	},
+	},*/
 
 
 	create: function() {
@@ -203,5 +203,5 @@ function collectPunchcard (player, punchcard) {
 }
 function inputCode (player, machine){
 	game.add.sprite(0,0,'punchcardMenu');
-	//this.game.state.start('level2'); //TEST code
+	this.game.state.start('level2'); //TEST code
 }
