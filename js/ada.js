@@ -1,4 +1,7 @@
-
+/* Ada - a web game made with Phaser on Canvas
+   By: Luc CB
+   TODO: Add credits
+*/
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '');
 
@@ -95,7 +98,8 @@ var mainState = {
 	}
 }
 var level2 = {
-
+	//Took out the preload and it works?  Further browser testing required.
+	
     /*preload: function() {
     game.load.image('library', 'assets/library.jpg');
     game.load.image('ground', 'assets/platform.png');
@@ -202,6 +206,8 @@ function collectPunchcard (player, punchcard) {
 
 }
 function inputCode (player, machine){
-	game.add.sprite(0,0,'punchcardMenu');
-	this.game.state.start('level2'); //TEST code
+	if(this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)){
+		game.add.sprite(0,0,'punchcardMenu');
+		//this.game.state.start('level2'); //TEST code
+	}
 }
