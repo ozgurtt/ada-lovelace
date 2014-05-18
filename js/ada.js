@@ -32,7 +32,8 @@ var punchcards;
 var collectedPunchcards = 0;
 var punchcardText;
 var tutorialText;
-
+var codeText;
+var commandQueue=[];
 var mainState = {
 
     preload: function() {
@@ -105,9 +106,9 @@ var mainState = {
 		//ivoButtonAdd.visible = false;
 		ivoMenuButtons.addCommand=game.add.button(15, 20, 'menuButtonAdd', clickButtonAdd);
 		ivoMenuButtons.addCommand.visible=false;
-		ivoMenuButtons.exit=game.add.button(15,300,'menuExit');
+		ivoMenuButtons.exit=game.add.button(15,300,'menuExit', hideMenu);
 		ivoMenuButtons.exit.visible=false;
-		ivoMenuButtons.execute=game.add.button(15,500,'menuExecute');
+		ivoMenuButtons.execute=game.add.button(15,400,'menuExecute', clickExecute);
 		ivoMenuButtons.execute.visible=false;
 		ivoCommandsBackground = game.add.sprite(40,40,'menuCommands');
 		ivoCommandsBackground.visible=false;
@@ -119,6 +120,8 @@ var mainState = {
 		ivoMenuButtons.blueDoor.visible=false;
 		ivoMenuButtons.yellowDoor=game.add.button(45,400,'menuYellowDoor');
 		ivoMenuButtons.yellowDoor.visible=false;
+		ivoMenuButtons.codeText = game.add.text(80,130,'code\n', { fontSize:'12px', fill: '#000' });
+		ivoMenuButtons.codeText.visible=false;
 		
 		punchcards = game.add.group();
 		punchcards.enableBody = true;
@@ -128,6 +131,8 @@ var mainState = {
 		
 		punchcardText = game.add.text(16, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
 		tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
+		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
+		codeText.visible=false;
 		cursors = game.input.keyboard.createCursorKeys();		
 	},
 	
@@ -143,7 +148,7 @@ var mainState = {
 		if(game.physics.arcade.distanceBetween(player, machine)<80) {
 			if (!closeToIvo){
 				closeToIvo=true;
-				punchcardText.text=game.physics.arcade.distanceBetween(player, machine);//for testing
+				//punchcardText.text=game.physics.arcade.distanceBetween(player, machine);//for testing
 				tutorialText.text="press enter to program Ivo with punch cards";
 			}
 			inputCode(player,machine);
@@ -219,6 +224,8 @@ function clickButtonAdd () { //No point in showing the commands menu unless ther
 		ivoMenuButtons.moveRight.visible=true;
 		ivoMenuButtons.blueDoor.visible=true;
 		ivoMenuButtons.yellowDoor.visible=true;
+	} else if (exitLight.exists){
+		tutorialText.text="Head for the light child";
 	} else {
 		tutorialText.text="grab that card first";
 	}
@@ -233,20 +240,30 @@ function hideCommandsMenu(){
 
 function clickBlueDoor (){
 	hideCommandsMenu();
-	exitDoor.exists=false;
-	exitLight.exists=true;
-		
+	commandQueue[0]="Open blue door";//0 for testing
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	collectedPunchcards--;
+	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
+}
+function clickExecute (){
+	if (commandQueue[0]=="Open blue door") {
+		exitDoor.exists=false;
+		exitLight.exists=true;
+		hideMenu();
+	}
 }
 function showMenu() {
 	ivoMenu.visible=true;
 	ivoMenuButtons.addCommand.visible=true;
 	ivoMenuButtons.exit.visible=true;
 	ivoMenuButtons.execute.visible=true;
+	ivoMenuButtons.codeText.visible=true;
 }
 function hideMenu() {
 	ivoMenu.visible=false;
 	ivoMenuButtons.addCommand.visible=false;
 	ivoMenuButtons.exit.visible=false;
 	ivoMenuButtons.execute.visible=false;
+	ivoMenuButtons.codeText.visible=false;
 }
 	
