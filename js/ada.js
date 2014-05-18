@@ -16,6 +16,7 @@ var ivoMenu;
 var ivoButtonAdd;
 var ivoCommands;
 var ivoMenuButtons=new Object();
+var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
 
 /*var ivoMenuEject;
 var ivoMenuExit;
@@ -29,11 +30,12 @@ var gravity=900;
 var punchcards;
 var collectedPunchcards = 0;
 var punchcardText;
+var tutorialText;
 
 var mainState = {
 
     preload: function() {
-    game.load.image('library', 'assets/library.jpg');
+    game.load.image('plainBackground', 'assets/plain-background.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('introScreen', 'assets/intro-exterior.jpg');
 	game.load.image('ada', 'assets/ada.png');
@@ -56,9 +58,11 @@ var mainState = {
 
 
 	create: function() {
+		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
 		//level backrground
-    	game.add.sprite(0, 0, 'library');
+    	var background = game.add.sprite(0, 0, 'plainBackground');
+		background.scale.setTo(10,10);
 		//platforms and ground
     	platforms = game.add.group();
 		platforms.enableBody = true;
@@ -88,6 +92,8 @@ var mainState = {
 		game.physics.arcade.enable(machine);
 		machine.body.collideWorldBounds = true;
 		machine.body.immovable = true;
+		
+		machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
 		//TODO: When Ivo moves, set immovable false, and give it gravity.
 		
 		//setting up the menu and submenu for Ivo but not displaying until we need to.
@@ -119,6 +125,7 @@ var mainState = {
 		punchcard.body.bounce.y=0.3;
 		
 		punchcardText = game.add.text(16, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
+		tutorialText = game.add.text(200,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
 		cursors = game.input.keyboard.createCursorKeys();		
 	},
 	
@@ -127,9 +134,19 @@ var mainState = {
 		game.physics.arcade.collide(player, doors);
 		game.physics.arcade.collide(punchcards, platforms);
 		game.physics.arcade.collide(machine, platforms);
-		game.physics.arcade.collide(player, machine,inputCode, null, this);
+		game.physics.arcade.collide(player, machine);
 		game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
 		game.physics.arcade.collide(player, exitLight,touchExitLight,null,this);
+		
+		if(game.physics.arcade.distanceBetween(player, machine)<60) {
+			if (closeToIvo==false){
+				closeToIvo=true;
+				punchcardText.text=game.physics.arcade.distanceBetween(player, machine);//for testing
+				tutorialText.text="press enter to program Ivo with punch cards";
+			}
+			inputCode(player,machine);
+		} //else {
+			
 		//  Stop Ada
 		player.body.velocity.x = 0;
 	
