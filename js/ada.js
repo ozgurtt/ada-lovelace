@@ -1,6 +1,9 @@
 /* Ada - a puzzle platformer
    By: Luc CB
    TODO: Add credits
+   -clean up code
+   -OOPify this shit. Global variables should mostly go.
+   -level creation/destruction, next big goal.
 */
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '');
@@ -13,11 +16,9 @@ var exitLight;
 var cursors;
 var machine;
 var ivoMenu;
-var ivoButtonAdd;
-var ivoCommands;
+var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-
 /*var ivoMenuEject;
 var ivoMenuExit;
 var ivoMenuExecute;
@@ -57,10 +58,9 @@ var mainState = {
 	},
 
 
-	create: function() {
-		
+	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
-		//level backrground
+		//level backrground, 80x80 px, sacled x10 to fit screen
     	var background = game.add.sprite(0, 0, 'plainBackground');
 		background.scale.setTo(10,10);
 		//platforms and ground
@@ -73,6 +73,7 @@ var mainState = {
 		
 		doors=game.add.group();
 		doors.enableBody=true;
+		
 		exitLight = game.add.sprite(780, game.world.height-130, 'exitLight');
 		game.physics.arcade.enable(exitLight);
 		exitLight.body.collideWorldBounds = true;
@@ -100,15 +101,16 @@ var mainState = {
 		//ordered so that the later images are on top
 		ivoMenu = game.add.sprite(0,0,'punchcardMenu');
 		ivoMenu.visible=false;
-		ivoButtonAdd = game.add.button(15, 20, 'menuButtonAdd', clickButtonAdd);
-		ivoButtonAdd.visible = false;
-
+		//ivoButtonAdd = game.add.button(15, 20, 'menuButtonAdd', clickButtonAdd);
+		//ivoButtonAdd.visible = false;
+		ivoMenuButtons.addCommand=game.add.button(15, 20, 'menuButtonAdd', clickButtonAdd);
+		ivoMenuButtons.addCommand.visible=false;
 		ivoMenuButtons.exit=game.add.button(15,300,'menuExit');
 		ivoMenuButtons.exit.visible=false;
 		ivoMenuButtons.execute=game.add.button(15,500,'menuExecute');
 		ivoMenuButtons.execute.visible=false;
-		ivoCommands = game.add.sprite(40,40,'menuCommands');
-		ivoCommands.visible=false;
+		ivoCommandsBackground = game.add.sprite(40,40,'menuCommands');
+		ivoCommandsBackground.visible=false;
 		ivoMenuButtons.moveLeft=game.add.button(45,100,'menuMoveLeft');
 		ivoMenuButtons.moveLeft.visible=false;
 		ivoMenuButtons.moveRight=game.add.button(45,200,'menuMoveRight');
@@ -120,12 +122,12 @@ var mainState = {
 		
 		punchcards = game.add.group();
 		punchcards.enableBody = true;
-		var punchcard=punchcards.create(600, 400, 'punchcard');
+		var punchcard=punchcards.create(600, 400, 'punchcard');//this will have to go when we start setting up levels
 		punchcard.body.gravity.y = 300;
 		punchcard.body.bounce.y=0.3;
 		
 		punchcardText = game.add.text(16, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
-		tutorialText = game.add.text(200,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
+		tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
 		cursors = game.input.keyboard.createCursorKeys();		
 	},
 	
@@ -136,16 +138,20 @@ var mainState = {
 		game.physics.arcade.collide(machine, platforms);
 		game.physics.arcade.collide(player, machine);
 		game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
-		game.physics.arcade.collide(player, exitLight,touchExitLight,null,this);
+		game.physics.arcade.collide(player, exitLight, touchExitLight,null,this);
 		
-		if(game.physics.arcade.distanceBetween(player, machine)<60) {
-			if (closeToIvo==false){
+		if(game.physics.arcade.distanceBetween(player, machine)<80) {
+			if (!closeToIvo){
 				closeToIvo=true;
 				punchcardText.text=game.physics.arcade.distanceBetween(player, machine);//for testing
 				tutorialText.text="press enter to program Ivo with punch cards";
 			}
 			inputCode(player,machine);
-		} //else {
+		} else if (closeToIvo) {
+			closeToIvo=false;
+			tutorialText.text="A command consumes a punch card";
+			hideMenu();
+		}
 			
 		//  Stop Ada
 		player.body.velocity.x = 0;
@@ -161,6 +167,12 @@ var mainState = {
 		if (cursors.up.isDown && player.body.touching.down)
 		{
 			player.body.velocity.y = -450;
+		}
+		else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC))
+		//TODO: boolean to show if the menu is open or closed. But how should I implement it?
+		{
+			hideCommandsMenu();
+			hideMenu();
 		}
 
 	}
@@ -182,9 +194,8 @@ var menuState = {
 	}
 	
 	
-game.state.add('main', mainState);
-//game.state.add('level2', level2); 
-game.state.add('menu', menuState); 
+game.state.add('main', mainState);//the game 
+game.state.add('menu', menuState);//intro screen 
 game.state.start('menu'); 
 
 function collectPunchcard (player, punchcard) {
@@ -194,25 +205,48 @@ function collectPunchcard (player, punchcard) {
 
 }
 function touchExitLight(player,exitLight){
-	alert("Level 1 complete");
+	tutorialText.text="level complete";//not working right now don't know why.
 }
-function inputCode (player, machine){ //display menu and buttons when Ada is close to Ivo and presses enter
+function inputCode (player, machine){ //player can start programming when she's close to Ivo
 	if(this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)){
-		ivoMenu.visible=true;
-		ivoButtonAdd.visible=true;
-		ivoMenuButtons.exit.visible=true;
-		ivoMenuButtons.execute.visible=true;
+		showMenu();
 	}
 }
-function clickButtonAdd () { //display submenu and buttons
-	ivoCommands.visible=true;
-	ivoMenuButtons.moveLeft.visible=true;
-	ivoMenuButtons.moveRight.visible=true;
-	ivoMenuButtons.blueDoor.visible=true;
-	ivoMenuButtons.yellowDoor.visible=true;
+function clickButtonAdd () { //No point in showing the commands menu unless there's punchcards to burn
+	if (collectedPunchcards>0) {
+		ivoCommandsBackground.visible=true;
+		ivoMenuButtons.moveLeft.visible=true;
+		ivoMenuButtons.moveRight.visible=true;
+		ivoMenuButtons.blueDoor.visible=true;
+		ivoMenuButtons.yellowDoor.visible=true;
+	} else {
+		tutorialText.text="grab that card first";
+	}
 }
+function hideCommandsMenu(){
+	ivoCommandsBackground.visible=false;
+	ivoMenuButtons.moveLeft.visible=false;
+	ivoMenuButtons.moveRight.visible=false;
+	ivoMenuButtons.blueDoor.visible=false;
+	ivoMenuButtons.yellowDoor.visible=false;
+}
+
 function clickBlueDoor (){
-	alert('blue door button pressed');
+	hideCommandsMenu();
 	exitDoor.exists=false;
 	exitLight.exists=true;
+		
 }
+function showMenu() {
+	ivoMenu.visible=true;
+	ivoMenuButtons.addCommand.visible=true;
+	ivoMenuButtons.exit.visible=true;
+	ivoMenuButtons.execute.visible=true;
+}
+function hideMenu() {
+	ivoMenu.visible=false;
+	ivoMenuButtons.addCommand.visible=false;
+	ivoMenuButtons.exit.visible=false;
+	ivoMenuButtons.execute.visible=false;
+}
+	
