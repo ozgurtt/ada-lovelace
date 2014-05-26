@@ -69,19 +69,19 @@ var mainState = {
     	//var background = game.add.sprite(0, 0, 'plainBackground');
 		//background.scale.setTo(10,10);
 		//platforms and ground
-    	platforms = game.add.group();
-		platforms.enableBody = true;
-		var ground = platforms.create(0, game.world.height - 64, 'ground');
+    	//platforms = game.add.group();
+		//platforms.enableBody = true;
+		//var ground = platforms.create(0, game.world.height - 64, 'ground');
 		//double width to fit screen resolution
-		ground.scale.setTo(2, 2);
-		ground.body.immovable = true;
+		//ground.scale.setTo(2, 2);
+		//ground.body.immovable = true;
 		
 		doors=game.add.group();
 		doors.enableBody=true;
 		
 		exitLight = game.add.sprite(780, game.world.height-130, 'exitLight');
 		game.physics.arcade.enable(exitLight);
-		exitLight.body.collideWorldBounds = true;
+		exitLight.body.collideWorldBounds = true;//keep?
 		exitLight.body.immovable = true;
 		exitLight.exists=false;
 		
@@ -141,10 +141,10 @@ var mainState = {
 	},
 	
 	update: function() {
-		game.physics.arcade.collide(player, platforms);
+		//game.physics.arcade.collide(player, platforms);
 		game.physics.arcade.collide(player, doors);
-		game.physics.arcade.collide(punchcards, platforms);
-		game.physics.arcade.collide(machine, platforms);
+		//game.physics.arcade.collide(punchcards, platforms);
+		//game.physics.arcade.collide(machine, platforms);
 		game.physics.arcade.collide(player, machine);
 		game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
 		game.physics.arcade.collide(player, exitLight, touchExitLight,null,this);
@@ -266,4 +266,3 @@ function hideMenu() {
 	ivoMenuButtons.execute.visible=false;
 	ivoMenuButtons.codeText.visible=false;
 }
-	
