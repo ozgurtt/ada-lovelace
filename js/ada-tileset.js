@@ -1,9 +1,7 @@
 /* Ada - a puzzle platformer
    By: Luc CB
    TODO: Add credits
-   -clean up code
-   -OOPify this shit. Global variables should mostly go.
-   -level creation/destruction, next big goal.
+   -level creation/destruction, next goal.
 */
 
 var game = new Phaser.Game(800, 608, Phaser.AUTO, '');
@@ -66,9 +64,10 @@ var mainState = {
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
+		//getting rid of this with tileset
 		//level backrground, 80x80 px, sacled x10 to fit screen
-    	var background = game.add.sprite(0, 0, 'plainBackground');
-		background.scale.setTo(10,10);
+    	//var background = game.add.sprite(0, 0, 'plainBackground');
+		//background.scale.setTo(10,10);
 		//platforms and ground
     	platforms = game.add.group();
 		platforms.enableBody = true;
