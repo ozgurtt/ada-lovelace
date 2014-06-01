@@ -18,13 +18,6 @@ var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-/*var ivoMenuEject;
-var ivoMenuExit;
-var ivoMenuExecute;
-var ivoMenuMoveLeft;
-var ivoMenuMoveRight;
-var ivoMenuBlueDoor;
-var ivoMenuYellowDoor;*/
 var gravity=900;
 
 var punchcards;
@@ -36,11 +29,11 @@ var commandQueue=[];
 var mainState = {
 
     preload: function() {
-		/*game.stage.setBackgroundColor(0xffffff);
-		text = this.game.add.text(250, 250, "loading..", {
-	    font: '30px Arial',
-	    fill: '#87E8D1'
-	});*/
+	game.stage.setBackgroundColor('#333');
+		tutorialText = game.add.text(50, 250, "Loading", {
+	    font: '40px Helvetica',
+	    fill: '#999'
+	});
     game.load.image('plainBackground', 'assets/plain-background.png');
     game.load.image('ground', 'assets/platform.png');
     game.load.image('introScreen', 'assets/intro-exterior.jpg');
@@ -68,7 +61,7 @@ var mainState = {
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
-		game.stage.backgroundColor = '#444';
+		game.stage.backgroundColor = '#f6eade';
 		//getting rid of this with tileset
 		//level backrground, 80x80 px, sacled x10 to fit screen
     	//var background = game.add.sprite(0, 0, 'plainBackground');
@@ -102,6 +95,7 @@ var mainState = {
 		game.physics.arcade.enable(machine);
 		machine.body.collideWorldBounds = true;
 		machine.body.immovable = true;
+		machine.body.gravity.y = gravity
 		
 		machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
 		//TODO: When Ivo moves, set immovable false, and give it gravity.
@@ -122,7 +116,7 @@ var mainState = {
 		ivoCommandsBackground.visible=false;
 		ivoMenuButtons.moveLeft=game.add.button(45,100,'menuMoveLeft');
 		ivoMenuButtons.moveLeft.visible=false;
-		ivoMenuButtons.moveRight=game.add.button(45,200,'menuMoveRight');
+		ivoMenuButtons.moveRight=game.add.button(45,200,'menuMoveRight', clickMoveRight);
 		ivoMenuButtons.moveRight.visible=false;
 		ivoMenuButtons.blueDoor=game.add.button(45,300,'menuBlueDoor',clickBlueDoor);
 		ivoMenuButtons.blueDoor.visible=false;
@@ -138,7 +132,8 @@ var mainState = {
 		punchcard.body.bounce.y=0.3;
 		
 		punchcardText = game.add.text(16, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
-		tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
+		//tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
+		tutorialText.text="Arrow keys to move and jump";
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
 		codeText.visible=false;
 		cursors = game.input.keyboard.createCursorKeys();
@@ -147,8 +142,10 @@ var mainState = {
 	
 	update: function() {
 		game.physics.arcade.collide(player, layer);
+		game.physics.arcade.collide(machine, layer);
 		//game.physics.arcade.collide(player, platforms);
 		game.physics.arcade.collide(player, doors);
+		game.physics.arcade.collide(machine, doors);
 		game.physics.arcade.collide(punchcards, layer);
 		//game.physics.arcade.collide(machine, platforms);
 		game.physics.arcade.collide(player, machine);
@@ -169,7 +166,11 @@ var mainState = {
 		}
 			
 		//  Stop Ada
-		player.body.velocity.x = 0;
+		if ((machine.body.touching.up)&&(machine.body.velocity.x!=0)) {
+			player.body.velocity.x=machine.body.velocity.x;
+		} else {
+			player.body.velocity.x = 0;
+		}
 	
 		if (cursors.left.isDown) {
 			player.body.velocity.x = -250;
@@ -180,7 +181,6 @@ var mainState = {
 		}
 		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
 		{
-			//alert("isdown");
 			player.body.velocity.y = -450;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
 			hideCommandsMenu();
@@ -247,8 +247,9 @@ function hideCommandsMenu(){
 }
 
 function clickBlueDoor (){
+	
+	commandQueue[0]="Open blue door";
 	hideCommandsMenu();
-	commandQueue[0]="Open blue door";//0 for testing
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
 	collectedPunchcards--;
 	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
@@ -258,7 +259,20 @@ function clickExecute (){
 		exitDoor.exists=false;
 		exitLight.exists=true;
 		hideMenu();
+	} else if (commandQueue[0]="Move right"){
+		machine.body.immovable = false;
+		machine.body.velocity.x=400;
+		if (machine.body.touching.up) {
+			player.body.velocity.x=machine.body.velocity.x;
+		}
 	}
+}
+function clickMoveRight(){
+	hideCommandsMenu();
+	commandQueue[0]="Move right";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	collectedPunchcards--;
+	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 }
 function showMenu() {
 	ivoMenu.visible=true;
