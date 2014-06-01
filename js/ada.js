@@ -59,7 +59,8 @@ var mainState = {
 	game.load.image('menuMoveRight','assets/menu-move-right.png');
 	game.load.image('menuBlueDoor','assets/menu-open-blue-door.png');
 	game.load.image('menuYellowDoor','assets/menu-open-yellow-door.png');
-	game.load.tilemap('map', 'assets/level-1.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-1', 'assets/level-1.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-2', 'assets/level-2.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
 
@@ -79,11 +80,7 @@ var mainState = {
 		//ground.scale.setTo(2, 2);
 		//ground.body.immovable = true;
 		loadLevel(1);
-		map = game.add.tilemap('map');
-		map.addTilesetImage('ada-tileset');
-		layer = map.createLayer('Tile Layer 1');
-		layer.resizeWorld();
-		map.setCollisionBetween(1, 4);
+		
 		
 		
 		doors=game.add.group();
@@ -184,7 +181,7 @@ var mainState = {
 			player.body.velocity.x = 250;
 			//player.flipped=false;
 		}
-		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))
+		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
 		{
 			//alert("isdown");
 			player.body.velocity.y = -450;
@@ -223,7 +220,8 @@ function collectPunchcard (player, punchcard) {
 
 }
 function touchExitLight(player,exitLight){
-	tutorialText.text="level complete";//not working right now don't know why.
+	tutorialText.text="level complete";
+	loadLevel(2);
 }
 function inputCode (player, machine){ //player can start programming when she's close to Ivo
 	if(this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)){
@@ -280,5 +278,9 @@ function hideMenu() {
 	ivoMenuButtons.codeText.visible=false;
 }
 function loadLevel(level) {	
-	alert("level"+level);
+	map = game.add.tilemap('level-'+level);
+	map.addTilesetImage('ada-tileset');
+	layer = map.createLayer('Tile Layer 1');
+	layer.resizeWorld();
+	map.setCollisionBetween(1, 4);
 }
