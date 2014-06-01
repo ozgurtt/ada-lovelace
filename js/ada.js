@@ -5,8 +5,9 @@
 */
 
 var game = new Phaser.Game(800, 608, Phaser.AUTO, '');
-
+//game.time.deltaCap = 0.05;//addresses an issue where player falls through tiles
 var player;
+var layer;
 var platforms;
 var doors;
 var exitDoor;
@@ -79,10 +80,10 @@ var mainState = {
 		//double width to fit screen resolution
 		//ground.scale.setTo(2, 2);
 		//ground.body.immovable = true;
+		
+		
+		
 		loadLevel(1);
-		
-		
-		
 		doors=game.add.group();
 		doors.enableBody=true;
 		
@@ -95,11 +96,7 @@ var mainState = {
 		exitDoor = doors.create(780, game.world.height - 130, 'blueDoor');
 		exitDoor.body.immovable=true;
 	
-		player = game.add.sprite(32, 200, 'ada');
-		game.physics.arcade.enable(player);
-		player.body.bounce.y = 0.2;
-		player.body.gravity.y = gravity;
-		player.body.collideWorldBounds = true;
+		
 		
 		machine = game.add.sprite(400, game.world.height - 120, 'ivo');
 		game.physics.arcade.enable(machine);
@@ -145,7 +142,7 @@ var mainState = {
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
 		codeText.visible=false;
 		cursors = game.input.keyboard.createCursorKeys();
-		game.camera.follow(player);		
+				
 	},
 	
 	update: function() {
@@ -278,9 +275,26 @@ function hideMenu() {
 	ivoMenuButtons.codeText.visible=false;
 }
 function loadLevel(level) {	
+	if (layer) {
+		layer.destroy();
+	}
+	if (player){
+		player.destroy();
+	}
 	map = game.add.tilemap('level-'+level);
 	map.addTilesetImage('ada-tileset');
 	layer = map.createLayer('Tile Layer 1');
 	layer.resizeWorld();
 	map.setCollisionBetween(1, 4);
+	player = game.add.sprite(32, 200, 'ada');
+	game.physics.arcade.enable(player);
+	player.body.velocity.x=0;
+	player.body.velocity.y=0;
+	player.body.bounce.y = 0.2;
+	player.body.gravity.y = gravity;
+	player.body.collideWorldBounds = true;
+	player.body.maxVelocity.y = 500;//keep her from falling through tiles
+	game.camera.follow(player);
+	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
+	//player.position.setTo(32,200);
 }
