@@ -1,9 +1,7 @@
 /* Ada - a puzzle platformer
    By: Luc CB
    TODO: Add credits
-   -clean up code
-   -OOPify this shit. Global variables should mostly go.
-   -level creation/destruction, next big goal.
+   -level creation/destruction, next goal.
 */
 
 var game = new Phaser.Game(800, 608, Phaser.AUTO, '');
@@ -61,41 +59,52 @@ var mainState = {
 	game.load.image('menuMoveRight','assets/menu-move-right.png');
 	game.load.image('menuBlueDoor','assets/menu-open-blue-door.png');
 	game.load.image('menuYellowDoor','assets/menu-open-yellow-door.png');
+	game.load.tilemap('map', 'assets/level-1.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
 
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
+		game.stage.backgroundColor = '#444';
+		//getting rid of this with tileset
 		//level backrground, 80x80 px, sacled x10 to fit screen
-    	var background = game.add.sprite(0, 0, 'plainBackground');
-		background.scale.setTo(10,10);
+    	//var background = game.add.sprite(0, 0, 'plainBackground');
+		//background.scale.setTo(10,10);
 		//platforms and ground
-    	platforms = game.add.group();
-		platforms.enableBody = true;
-		var ground = platforms.create(0, game.world.height - 64, 'ground');
+    	//platforms = game.add.group();
+		//platforms.enableBody = true;
+		//var ground = platforms.create(0, game.world.height - 64, 'ground');
 		//double width to fit screen resolution
-		ground.scale.setTo(2, 2);
-		ground.body.immovable = true;
+		//ground.scale.setTo(2, 2);
+		//ground.body.immovable = true;
+		loadLevel(1);
+		map = game.add.tilemap('map');
+		map.addTilesetImage('ada-tileset');
+		layer = map.createLayer('Tile Layer 1');
+		layer.resizeWorld();
+		map.setCollisionBetween(1, 4);
+		
 		
 		doors=game.add.group();
 		doors.enableBody=true;
 		
 		exitLight = game.add.sprite(780, game.world.height-130, 'exitLight');
 		game.physics.arcade.enable(exitLight);
-		exitLight.body.collideWorldBounds = true;
+		exitLight.body.collideWorldBounds = true;//keep?
 		exitLight.body.immovable = true;
 		exitLight.exists=false;
 		
 		exitDoor = doors.create(780, game.world.height - 130, 'blueDoor');
 		exitDoor.body.immovable=true;
 	
-		player = game.add.sprite(32, game.world.height - 150, 'ada');
+		player = game.add.sprite(32, 200, 'ada');
 		game.physics.arcade.enable(player);
 		player.body.bounce.y = 0.2;
 		player.body.gravity.y = gravity;
 		player.body.collideWorldBounds = true;
 		
-		machine = game.add.sprite(400, game.world.height - 113, 'ivo');
+		machine = game.add.sprite(400, game.world.height - 120, 'ivo');
 		game.physics.arcade.enable(machine);
 		machine.body.collideWorldBounds = true;
 		machine.body.immovable = true;
@@ -138,14 +147,16 @@ var mainState = {
 		tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
 		codeText.visible=false;
-		cursors = game.input.keyboard.createCursorKeys();		
+		cursors = game.input.keyboard.createCursorKeys();
+		game.camera.follow(player);		
 	},
 	
 	update: function() {
-		game.physics.arcade.collide(player, platforms);
+		game.physics.arcade.collide(player, layer);
+		//game.physics.arcade.collide(player, platforms);
 		game.physics.arcade.collide(player, doors);
-		game.physics.arcade.collide(punchcards, platforms);
-		game.physics.arcade.collide(machine, platforms);
+		game.physics.arcade.collide(punchcards, layer);
+		//game.physics.arcade.collide(machine, platforms);
 		game.physics.arcade.collide(player, machine);
 		game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
 		game.physics.arcade.collide(player, exitLight, touchExitLight,null,this);
@@ -168,13 +179,14 @@ var mainState = {
 	
 		if (cursors.left.isDown) {
 			player.body.velocity.x = -250;
-			player.flipped=true;
+			//player.flipped=true;
 		} else if (cursors.right.isDown) {
 			player.body.velocity.x = 250;
-			player.flipped=false;
+			//player.flipped=false;
 		}
-		if (cursors.up.isDown && player.body.touching.down)
+		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))
 		{
+			//alert("isdown");
 			player.body.velocity.y = -450;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
 			hideCommandsMenu();
@@ -267,4 +279,6 @@ function hideMenu() {
 	ivoMenuButtons.execute.visible=false;
 	ivoMenuButtons.codeText.visible=false;
 }
-	
+function loadLevel(level) {	
+	alert("level"+level);
+}

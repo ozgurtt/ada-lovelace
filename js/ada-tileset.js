@@ -59,11 +59,14 @@ var mainState = {
 	game.load.image('menuMoveRight','assets/menu-move-right.png');
 	game.load.image('menuBlueDoor','assets/menu-open-blue-door.png');
 	game.load.image('menuYellowDoor','assets/menu-open-yellow-door.png');
+	game.load.tilemap('map', 'assets/test-map.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
 
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
+		game.stage.backgroundColor = '#444';
 		//getting rid of this with tileset
 		//level backrground, 80x80 px, sacled x10 to fit screen
     	//var background = game.add.sprite(0, 0, 'plainBackground');
@@ -75,6 +78,13 @@ var mainState = {
 		//double width to fit screen resolution
 		//ground.scale.setTo(2, 2);
 		//ground.body.immovable = true;
+		loadLevel(1);
+		map = game.add.tilemap('map');
+		map.addTilesetImage('ada-tileset');
+		layer = map.createLayer('Tile Layer 1');
+		layer.resizeWorld();
+		map.setCollisionBetween(1, 6);
+		
 		
 		doors=game.add.group();
 		doors.enableBody=true;
@@ -88,7 +98,7 @@ var mainState = {
 		exitDoor = doors.create(780, game.world.height - 130, 'blueDoor');
 		exitDoor.body.immovable=true;
 	
-		player = game.add.sprite(32, game.world.height - 150, 'ada');
+		player = game.add.sprite(32, 200, 'ada');
 		game.physics.arcade.enable(player);
 		player.body.bounce.y = 0.2;
 		player.body.gravity.y = gravity;
@@ -137,13 +147,15 @@ var mainState = {
 		tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
 		codeText.visible=false;
-		cursors = game.input.keyboard.createCursorKeys();		
+		cursors = game.input.keyboard.createCursorKeys();
+		game.camera.follow(player);		
 	},
 	
 	update: function() {
+		game.physics.arcade.collide(player, layer);
 		//game.physics.arcade.collide(player, platforms);
 		game.physics.arcade.collide(player, doors);
-		//game.physics.arcade.collide(punchcards, platforms);
+		game.physics.arcade.collide(punchcards, layer);
 		//game.physics.arcade.collide(machine, platforms);
 		game.physics.arcade.collide(player, machine);
 		game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
@@ -167,13 +179,14 @@ var mainState = {
 	
 		if (cursors.left.isDown) {
 			player.body.velocity.x = -250;
-			player.flipped=true;
+			//player.flipped=true;
 		} else if (cursors.right.isDown) {
 			player.body.velocity.x = 250;
-			player.flipped=false;
+			//player.flipped=false;
 		}
-		if (cursors.up.isDown && player.body.touching.down)
+		if (cursors.up.isDown && player.body.onFloor())
 		{
+			//alert("isdown");
 			player.body.velocity.y = -450;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
 			hideCommandsMenu();
@@ -265,4 +278,7 @@ function hideMenu() {
 	ivoMenuButtons.exit.visible=false;
 	ivoMenuButtons.execute.visible=false;
 	ivoMenuButtons.codeText.visible=false;
+}
+function loadLevel(level) {	
+	alert("level"+level);
 }
