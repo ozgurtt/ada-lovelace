@@ -11,19 +11,20 @@ var layer;
 var platforms;
 var doors;
 var exitDoor;
-var exitLight;
+var exitArrow;
 var cursors;
 var machine;
-var coins;//for testing
+//for testing
 
 var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-var gravity=700;
+var gravity=800;
 
 var punchcards;
 var collectedPunchcards = 0;
+var spentPunchcards=0;
 var punchcardText;
 var tutorialText;
 var codeText;
@@ -43,20 +44,20 @@ var mainState = {
 	game.load.image('punchcard', 'assets/punchcard.png');
 	game.load.image('ivo', 'assets/ivo.png');
 	game.load.image('blueDoor','assets/blue-door.png');
-	game.load.image('exitLight','assets/exit-light.png');
+	game.load.image('exitArrow','assets/exit-arrow.png');
 	game.load.image('punchcardMenu','assets/punchcard-menu.jpg');
 	game.load.image('menuButtonAdd','assets/menu-button-add.jpg');
 	game.load.image('punchcardMenu','assets/punchcard-menu.jpg');
 	game.load.image('menuCommands','assets/menu-commands.png');
 	game.load.image('menuEject','assets/menu-eject-cards.png');
-	game.load.image('menuExit','assets/menu-exit.png');
+	//game.load.image('menuExit','assets/menu-exit.png');
 	game.load.image('menuExecute','assets/menu-execute.png');
 	game.load.image('menuMoveLeft','assets/menu-move-left.png');
 	game.load.image('menuMoveRight','assets/menu-move-right.png');
 	game.load.image('menuBlueDoor','assets/menu-open-blue-door.png');
 	game.load.image('menuYellowDoor','assets/menu-open-yellow-door.png');
 	game.load.tilemap('level-1', 'assets/level-1-test.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.tilemap('level-2', 'assets/level-2.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-2', 'assets/level-2-test.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
 
@@ -64,41 +65,15 @@ var mainState = {
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
 		game.stage.backgroundColor = '#f6eade';
-		//getting rid of this with tileset
-		//level backrground, 80x80 px, sacled x10 to fit screen
-    	//var background = game.add.sprite(0, 0, 'plainBackground');
-		//background.scale.setTo(10,10);
-		//platforms and ground
-    	//platforms = game.add.group();
-		//platforms.enableBody = true;
-		//var ground = platforms.create(0, game.world.height - 64, 'ground');
-		//double width to fit screen resolution
-		//ground.scale.setTo(2, 2);
-		//ground.body.immovable = true;
-		
 		
 		
 		loadLevel(1);
 		//doors=game.add.group();
 		//doors.enableBody=true;
 		//exitDoor = doors.create(780, game.world.height - 130, 'blueDoor');
-		//exitDoor.body.immovable=true;
+		//exitDoor.body.immovable=true;	
 		
-		exitLight = game.add.sprite(780, game.world.height-130, 'exitLight');
-		game.physics.arcade.enable(exitLight);
-		exitLight.body.collideWorldBounds = true;//keep?
-		exitLight.body.immovable = true;
-		exitLight.exists=false;
-	
-		
-		machine = game.add.sprite(400, game.world.height - 120, 'ivo');
-		game.physics.arcade.enable(machine);
-		machine.body.collideWorldBounds = true;
-		machine.body.immovable = true;
-		machine.body.gravity.y = gravity
-		
-		machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
-		//TODO: When Ivo moves, set immovable false, and give it gravity.
+
 		
 		//setting up the menu and submenu for Ivo but not displaying until we need to.
 		//ordered so that the later images are on top
@@ -108,9 +83,9 @@ var mainState = {
 		//ivoButtonAdd.visible = false;
 		ivoMenuButtons.addCommand=game.add.button(15, 20, 'menuButtonAdd', clickButtonAdd);
 		ivoMenuButtons.addCommand.visible=false;
-		ivoMenuButtons.exit=game.add.button(15,300,'menuExit', hideMenu);
+		ivoMenuButtons.exit=game.add.button(15,400,'menuEject', clickEject);
 		ivoMenuButtons.exit.visible=false;
-		ivoMenuButtons.execute=game.add.button(15,400,'menuExecute', clickExecute);
+		ivoMenuButtons.execute=game.add.button(15,250,'menuExecute', clickExecute);
 		ivoMenuButtons.execute.visible=false;
 		ivoCommandsBackground = game.add.sprite(40,40,'menuCommands');
 		ivoCommandsBackground.visible=false;
@@ -122,10 +97,11 @@ var mainState = {
 		ivoMenuButtons.blueDoor.visible=false;
 		ivoMenuButtons.yellowDoor=game.add.button(45,400,'menuYellowDoor');
 		ivoMenuButtons.yellowDoor.visible=false;
-		ivoMenuButtons.codeText = game.add.text(80,130,'code\n', { fontSize:'12px', fill: '#000' });
+		ivoMenuButtons.codeText = game.add.text(80,140,'code\n', { fontSize:'12px', fill: '#000' });
 		ivoMenuButtons.codeText.visible=false;
 		
-		punchcardText = game.add.text(16, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
+		punchcardText = game.add.text(260, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
+		punchcardText.fixedToCamera=true;
 		//tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
 		tutorialText.text="Arrow keys to move and jump";
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
@@ -144,7 +120,7 @@ var mainState = {
 		//game.physics.arcade.collide(machine, platforms);
 		game.physics.arcade.collide(player, machine);
 		game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
-		game.physics.arcade.collide(player, exitLight, touchExitLight,null,this);
+		game.physics.arcade.collide(player, exitArrow, touchExitLight,null,this);
 		
 		if(game.physics.arcade.distanceBetween(player, machine)<80) {
 			if (!closeToIvo){
@@ -227,8 +203,8 @@ function clickButtonAdd () { //No point in showing the commands menu unless ther
 		ivoMenuButtons.moveRight.visible=true;
 		ivoMenuButtons.blueDoor.visible=true;
 		ivoMenuButtons.yellowDoor.visible=true;
-	} else if (exitLight.exists){
-		tutorialText.text="Head for the light child";//why won't it work?
+	} else if (exitArrow.getAt(0).exists){
+		tutorialText.text="Head out";//why won't it work?
 	} else {
 		tutorialText.text="grab that card first";
 	}
@@ -240,21 +216,21 @@ function hideCommandsMenu(){
 	ivoMenuButtons.blueDoor.visible=false;
 	ivoMenuButtons.yellowDoor.visible=false;
 }
-
-function clickBlueDoor (){
-	
-	commandQueue[0]="Open blue door";
-	hideCommandsMenu();
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
-	collectedPunchcards--;
-	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
+function clickEject (){
+	if (spentPunchcards>0){
+		collectedPunchcards=spentPunchcards;
+		spentPunchcards=0;
+		punchcardText.text = 'Punchcards: ' + collectedPunchcards;
+		commandQueue.length=0;
+		ivoMenuButtons.codeText.text="";
+	}
 }
 function clickExecute (){
 	if (commandQueue[0]=="Open blue door") {
 		doors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
-		exitLight.exists=true;
+		exitArrow.getAt(0).exists=true;
 		hideMenu();
-	} else if (commandQueue[0]="Move right"){
+	} else if (commandQueue[0]=="Move right"){
 		machine.body.immovable = false;
 		machine.body.velocity.x=400;
 		if (machine.body.touching.up) {
@@ -266,8 +242,14 @@ function clickMoveRight(){
 	hideCommandsMenu();
 	commandQueue[0]="Move right";
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
-	collectedPunchcards--;
-	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
+	spendCard();
+}
+function clickBlueDoor (){
+	
+	commandQueue[0]="Open blue door";
+	hideCommandsMenu();
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	spendCard();
 }
 function showMenu() {
 	ivoMenu.visible=true;
@@ -296,6 +278,14 @@ function loadLevel(level) {
 	if (doors){
 		doors.destroy();
 	}
+	if (exitArrow){
+		exitArrow.destroy();
+	}
+	if (machine){
+		machine.destroy();
+	}
+	collectedPunchcards = 0;
+	spentPunchcards=0;
 	map = game.add.tilemap('level-'+level);
 	map.addTilesetImage('ada-tileset');
 	layer = map.createLayer('Tile Layer 1');
@@ -307,18 +297,20 @@ function loadLevel(level) {
 		s.body.gravity.y = 300;
 		s.body.bounce.y=0.3;
 	}, this);
+	exitArrow=game.add.group();
+	exitArrow.enableBody=true;
+	map.createFromObjects('entities', 6, 'exitArrow', 0, true, false, exitArrow);
+	exitArrow.forEach(function(s) {
+		s.body.immovable = true;
+		s.exists=false;
+	}, this);
 	doors=game.add.group();
 	doors.enableBody=true;
 	map.createFromObjects('entities', 6, 'blueDoor', 0, true, false, doors);
 	doors.forEach(function(s) {
 		s.body.immovable = true;
 	}, this);
-	
-	
-		//doors=game.add.group();
-		//doors.enableBody=true;
-		//exitDoor = doors.create(780, game.world.height - 130, 'blueDoor');
-		//exitDoor.body.immovable=true;
+
 	map.setCollisionBetween(1, 4);
 	player = game.add.sprite(32, 200, 'ada');
 	game.physics.arcade.enable(player);
@@ -331,6 +323,18 @@ function loadLevel(level) {
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
+	machine = game.add.sprite(400, game.world.height - 120, 'ivo');
+	game.physics.arcade.enable(machine);
+	machine.body.collideWorldBounds = true;
+	machine.body.immovable = true;
+	machine.body.gravity.y = gravity	
+	machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
+	//TODO: When Ivo moves, set immovable false, and give it gravity.
+}
+function spendCard(){
+	collectedPunchcards--;
+	spentPunchcards++;
+	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 }
 //function render() {
     //  Useful debug things you can turn on to see what's happening

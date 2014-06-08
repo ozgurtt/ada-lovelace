@@ -4,7 +4,7 @@
    -level creation/destruction, next goal.
 */
 
-var game = new Phaser.Game(800, 608, Phaser.AUTO, '');
+var game = new Phaser.Game(992, 512, Phaser.AUTO, '');
 //game.time.deltaCap = 0.05;//addresses an issue where player falls through tiles
 var player;
 var layer;
@@ -18,7 +18,7 @@ var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-var gravity=900;
+var gravity=700;
 
 var punchcards;
 var collectedPunchcards = 0;
