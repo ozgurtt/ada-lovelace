@@ -57,6 +57,9 @@ var mainState = {
 	game.load.image('menuMoveRight','assets/menu-move-right.png');
 	game.load.image('menuBlueDoor','assets/menu-open-blue-door.png');
 	game.load.image('menuYellowDoor','assets/menu-open-yellow-door.png');
+	game.load.image('menuRepeat','assets/menu-repeat.png');
+	game.load.image('menuWait','assets/menu-wait.png');
+	game.load.image('menuGravity','assets/menu-reverse-gravity.png');
 	game.load.tilemap('level-1', 'assets/level-1-test.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-2', 'assets/level-2.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
@@ -174,6 +177,9 @@ function clickButtonAdd () { //No point in showing the commands menu unless ther
 		ivoMenuButtons.moveRight.visible=true;
 		ivoMenuButtons.blueDoor.visible=true;
 		ivoMenuButtons.yellowDoor.visible=true;
+		ivoMenuButtons.repeat.visible=true;
+		ivoMenuButtons.wait.visible=true;
+		ivoMenuButtons.reverseGravity.visible=true;
 	} else if (exitArrow.getAt(0).exists){
 		tutorialText.text="Head out";//why won't it work?
 	} else {
@@ -186,6 +192,9 @@ function hideCommandsMenu(){
 	ivoMenuButtons.moveRight.visible=false;
 	ivoMenuButtons.blueDoor.visible=false;
 	ivoMenuButtons.yellowDoor.visible=false;
+	ivoMenuButtons.repeat.visible=false;
+	ivoMenuButtons.wait.visible=false;
+	ivoMenuButtons.reverseGravity.visible=false;
 }
 function clickEject (){
 	if (spentPunchcards>0){
@@ -234,6 +243,27 @@ function clickMoveLeft(){
 function clickBlueDoor (){
 	
 	commandQueue[0]="Open blue door";
+	hideCommandsMenu();
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	spendCard();
+}
+function clickRepeat (){
+	
+	commandQueue[0]="Repeat";
+	hideCommandsMenu();
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	spendCard();
+}
+function clickWait (){
+	
+	commandQueue[0]="Wait 5 seconds";
+	hideCommandsMenu();
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	spendCard();
+}
+function clickGravity (){
+	
+	commandQueue[0]="Reverse Ada's gravity";
 	hideCommandsMenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
 	spendCard();
@@ -332,24 +362,30 @@ function loadLevel(level) {
 	//ordered so that the later images are on top
 	ivoMenu = game.add.sprite(0,0,'punchcardMenu');
 	ivoMenu.visible=false;
-	ivoMenuButtons.addCommand=game.add.button(15, 20, 'menuButtonAdd', clickButtonAdd);
+	ivoMenuButtons.addCommand=game.add.button(15, 5, 'menuButtonAdd', clickButtonAdd);
 	ivoMenuButtons.addCommand.visible=false;
 	ivoMenuButtons.exit=game.add.button(15,400,'menuEject', clickEject);
 	ivoMenuButtons.exit.visible=false;
-	ivoMenuButtons.execute=game.add.button(15,250,'menuExecute', clickExecute);
+	ivoMenuButtons.execute=game.add.button(15,260,'menuExecute', clickExecute);
 	ivoMenuButtons.execute.visible=false;
-	ivoMenuButtons.codeText = game.add.text(80,140,'code\n', { fontSize:'12px', fill: '#000' });
+	ivoMenuButtons.codeText = game.add.text(10,140,'code\n', {font:'40px Helvetica', fill: '#000' });
 	ivoMenuButtons.codeText.visible=false;
-	ivoCommandsBackground = game.add.sprite(40,40,'menuCommands');
+	ivoCommandsBackground = game.add.sprite(40,0,'menuCommands');
 	ivoCommandsBackground.visible=false;
-	ivoMenuButtons.moveLeft=game.add.button(45,100,'menuMoveLeft', clickMoveLeft);
+	ivoMenuButtons.moveLeft=game.add.button(45,5,'menuMoveLeft', clickMoveLeft);
 	ivoMenuButtons.moveLeft.visible=false;
-	ivoMenuButtons.moveRight=game.add.button(45,200,'menuMoveRight', clickMoveRight);
+	ivoMenuButtons.moveRight=game.add.button(45,75,'menuMoveRight', clickMoveRight);
 	ivoMenuButtons.moveRight.visible=false;
-	ivoMenuButtons.blueDoor=game.add.button(45,300,'menuBlueDoor',clickBlueDoor);
+	ivoMenuButtons.blueDoor=game.add.button(45,145,'menuBlueDoor',clickBlueDoor);
 	ivoMenuButtons.blueDoor.visible=false;
-	ivoMenuButtons.yellowDoor=game.add.button(45,400,'menuYellowDoor');
+	ivoMenuButtons.yellowDoor=game.add.button(45,215,'menuYellowDoor');
 	ivoMenuButtons.yellowDoor.visible=false;
+	ivoMenuButtons.repeat=game.add.button(45,285,'menuRepeat',clickRepeat);
+	ivoMenuButtons.repeat.visible=false;
+	ivoMenuButtons.wait=game.add.button(45,355,'menuWait',clickWait);
+	ivoMenuButtons.wait.visible=false;
+	ivoMenuButtons.reverseGravity=game.add.button(45,425,'menuGravity',clickGravity);
+	ivoMenuButtons.reverseGravity.visible=false;
 	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 }
 function spendCard(){
