@@ -28,6 +28,7 @@ var spentPunchcards=0;
 var punchcardText;
 var tutorialText;
 var codeText;
+var timerText;
 var commandQueue=[];
 var mainState = {
     preload: function() {
@@ -64,18 +65,21 @@ var mainState = {
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
 		game.stage.backgroundColor = '#f6eade';
-		game.stage.backgroundColor = '#000';
+		//game.stage.backgroundColor = '#000';
     	timer = game.time.create(false);
 		//  Set it to wait 5 seconds to trigger an event
 		timer.loop(5000, updateCounter, this);
 		//start timer in clickExecute function
+		timerText = game.add.text(460, 16, '', { fontSize: '32px', fill: '#000' });
+		timerText.fixedToCamera=true;
 		punchcardText = game.add.text(260, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
 		punchcardText.fixedToCamera=true;
 		tutorialText.text="Arrow keys to move and jump";
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
 		codeText.visible=false;
 		cursors = game.input.keyboard.createCursorKeys();
-		loadLevel(1);				
+		loadLevel(1);
+						
 	},
 	
 	update: function() {
@@ -198,6 +202,7 @@ function clickExecute (){
 		exitArrow.getAt(0).exists=true;
 		hideMenu();
 		timer.start();//For testing purposes
+		timerText.text='Time until event: ' + timer.duration.toFixed(0);
 	} else if (commandQueue[0]=="Move right"){
 		machine.body.immovable = false;
 		machine.body.velocity.x=400;
@@ -361,7 +366,7 @@ function updateCounter() {
 
     // game.debug.cameraInfo(game.camera, 32, 32);
 
-    // game.debug.body(player);
+    //game.debug.body(player);
 
-//    game.debug.bodyInfo(player, 32, 32);
+//game.debug.bodyInfo(player, 32, 32);
 //}
