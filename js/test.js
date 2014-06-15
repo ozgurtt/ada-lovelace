@@ -20,7 +20,7 @@ var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-var gravity=800;
+var gravity=850;
 
 var punchcards;
 var collectedPunchcards = 0;
@@ -141,7 +141,9 @@ var mainState = {
 		} else {
 			player.body.velocity.x = 0;
 		}
-		
+		if ((machine.body.velocity.x==0) && (machine.body.velocity.y==0)) {
+			machine.body.immovable=true;//When stationary we don't want Ivo be pushed around.
+		}
 	
 		if (cursors.left.isDown) {
 			player.body.velocity.x = -250;
@@ -152,7 +154,7 @@ var mainState = {
 		}
 		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
 		{
-			player.body.velocity.y = -450;
+			player.body.velocity.y = -420;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
 			hideCommandsMenu();
 			hideMenu();
@@ -327,7 +329,7 @@ function loadLevel(level) {
 	game.physics.arcade.enable(machine);
 	machine.body.collideWorldBounds = true;
 	machine.body.immovable = true;
-	machine.body.gravity.y = gravity	
+	machine.body.gravity.y = gravity-100;//ensures Ada will stick to the top of Ivo while they fall, she has more gravity.	
 	machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
 	//TODO: When Ivo moves, set immovable false, and give it gravity.
 }

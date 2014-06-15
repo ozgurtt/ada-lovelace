@@ -42,6 +42,258 @@
                  "width":0,
                  "x":960,
                  "y":448
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":0,
+                 "y":448
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":160,
+                 "y":128
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":160,
+                 "y":448
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":736,
+                 "y":384
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":896,
+                 "y":448
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":800,
+                 "y":320
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":544,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":480,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":448,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":512,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":576,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":608,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":640,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":672,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":736,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":704,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":768,
+                 "y":512
+                }, 
+                {
+                 "gid":7,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":800,
+                 "y":512
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -60,7 +312,7 @@
         {
          "firstgid":1,
          "image":"ada-tileset.png",
-         "imageheight":64,
+         "imageheight":96,
          "imagewidth":96,
          "margin":0,
          "name":"ada-tileset",
