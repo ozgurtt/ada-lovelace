@@ -14,7 +14,7 @@ var exitDoor;
 var exitArrow;
 var cursors;
 var machine;
-//for testing
+var timer;
 
 var ivoMenu;
 var ivoCommandsBackground;
@@ -30,7 +30,6 @@ var tutorialText;
 var codeText;
 var commandQueue=[];
 var mainState = {
-
     preload: function() {
 	game.stage.setBackgroundColor('#333');
 		tutorialText = game.add.text(50, 250, "Loading", {
@@ -58,53 +57,41 @@ var mainState = {
 	game.load.image('menuBlueDoor','assets/menu-open-blue-door.png');
 	game.load.image('menuYellowDoor','assets/menu-open-yellow-door.png');
 	game.load.tilemap('level-1', 'assets/level-1-test.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.tilemap('level-2', 'assets/level-2-test.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-2', 'assets/level-2.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
-
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
 		game.stage.backgroundColor = '#f6eade';
-		
-		
-		loadLevel(1);
-		//doors=game.add.group();
-		//doors.enableBody=true;
-		//exitDoor = doors.create(780, game.world.height - 130, 'blueDoor');
-		//exitDoor.body.immovable=true;	
-		
-
-		
-		
-		
+		game.stage.backgroundColor = '#000';
+    	timer = game.time.create(false);
+		//  Set it to wait 5 seconds to trigger an event
+		timer.loop(5000, updateCounter, this);
+		//start timer in clickExecute function
 		punchcardText = game.add.text(260, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
 		punchcardText.fixedToCamera=true;
-		//tutorialText = game.add.text(170,200,'arrow keys to move and jump', { fontSize:'64px', fill: '#000' });
 		tutorialText.text="Arrow keys to move and jump";
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
 		codeText.visible=false;
 		cursors = game.input.keyboard.createCursorKeys();
-				
+		loadLevel(1);				
 	},
 	
 	update: function() {
 		game.physics.arcade.collide(player, layer);
 		game.physics.arcade.collide(machine, layer);
-		//game.physics.arcade.collide(player, platforms);
+		game.physics.arcade.collide(machine, spikes);
 		game.physics.arcade.collide(player, doors);
 		game.physics.arcade.collide(machine, doors);
 		game.physics.arcade.collide(punchcards, layer);
-		//game.physics.arcade.collide(machine, platforms);
 		game.physics.arcade.collide(player, machine);
 		game.physics.arcade.overlap(player, punchcards, collectPunchcard, null, this);
 		game.physics.arcade.collide(player, exitArrow, touchExitLight,null,this);
-		game.physics.arcade.collide(player, spikes, touchSpikes,null,this);
-		
-		if(game.physics.arcade.distanceBetween(player, machine)<80) {
+		game.physics.arcade.collide(player, spikes, touchSpikes,null,this);	
+		if(game.physics.arcade.distanceBetween(player, machine)<100) {
 			if (!closeToIvo){
 				closeToIvo=true;
-				//punchcardText.text=game.physics.arcade.distanceBetween(player, machine);//for testing
 				tutorialText.text="press enter to program Ivo with punch cards";
 			}
 			inputCode(player,machine);
@@ -112,8 +99,7 @@ var mainState = {
 			closeToIvo=false;
 			tutorialText.text="A command consumes a punch card";
 			hideMenu();
-		}
-			
+		}			
 		//  Stop Ada
 		if ((machine.body.touching.up)&&(machine.body.velocity.x!=0)) {
 			player.body.velocity.x=machine.body.velocity.x;
@@ -125,10 +111,10 @@ var mainState = {
 		}
 	
 		if (cursors.left.isDown) {
-			player.body.velocity.x = -250;
+			player.body.velocity.x = -220;
 			//player.flipped=true;
 		} else if (cursors.right.isDown) {
-			player.body.velocity.x = 250;
+			player.body.velocity.x = 220;
 			//player.flipped=false;
 		}
 		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
@@ -141,7 +127,6 @@ var mainState = {
 
 	}
 }
-
 var menuState = {
 		preload : function(){
 			game.load.image('introScreen', 'assets/intro-exterior.jpg');
@@ -156,8 +141,6 @@ var menuState = {
 				this.game.state.start('main');
 		}
 	}
-	
-	
 game.state.add('main', mainState);//the game 
 game.state.add('menu', menuState);//intro screen 
 game.state.start('menu'); 
@@ -166,7 +149,6 @@ function collectPunchcard (player, punchcard) {
     punchcard.kill();
     collectedPunchcards += 1;
     punchcardText.text = 'Punchcards: ' + collectedPunchcards;
-
 }
 function touchExitLight(player,exitLight){
 	tutorialText.text="level complete";
@@ -215,17 +197,32 @@ function clickExecute (){
 		doors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
 		hideMenu();
+		timer.start();//For testing purposes
 	} else if (commandQueue[0]=="Move right"){
 		machine.body.immovable = false;
 		machine.body.velocity.x=400;
 		if (machine.body.touching.up) {
 			player.body.velocity.x=machine.body.velocity.x;
 		}
+		hideMenu();
+	} else if (commandQueue[0]=="Move left"){
+		machine.body.immovable = false;
+		machine.body.velocity.x=-400;
+		if (machine.body.touching.up) {
+			player.body.velocity.x=machine.body.velocity.x;
+		}
+		hideMenu();
 	}
 }
 function clickMoveRight(){
 	hideCommandsMenu();
 	commandQueue[0]="Move right";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	spendCard();
+}
+function clickMoveLeft(){
+	hideCommandsMenu();
+	commandQueue[0]="Move left";
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
 	spendCard();
 }
@@ -309,7 +306,7 @@ function loadLevel(level) {
 	}, this);
 
 	map.setCollisionBetween(1, 4);
-	player = game.add.sprite(32, 200, 'ada');
+	player = game.add.sprite(64, 200, 'ada');
 	game.physics.arcade.enable(player);
 	player.body.velocity.x=0;
 	player.body.velocity.y=0;
@@ -320,13 +317,12 @@ function loadLevel(level) {
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
-	machine = game.add.sprite(400, game.world.height - 120, 'ivo');
+	machine = game.add.sprite(200, 200, 'ivo');
 	game.physics.arcade.enable(machine);
 	machine.body.collideWorldBounds = true;
-	machine.body.immovable = true;
+	machine.body.immovable = false;
 	machine.body.gravity.y = gravity-100;//ensures Ada will stick to the top of Ivo while they fall, she has more gravity.	
 	machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
-	//TODO: When Ivo moves, set immovable false, and give it gravity.
 	//setting up the menu and submenu for Ivo but not displaying until we need to.
 	//ordered so that the later images are on top
 	ivoMenu = game.add.sprite(0,0,'punchcardMenu');
@@ -337,9 +333,11 @@ function loadLevel(level) {
 	ivoMenuButtons.exit.visible=false;
 	ivoMenuButtons.execute=game.add.button(15,250,'menuExecute', clickExecute);
 	ivoMenuButtons.execute.visible=false;
+	ivoMenuButtons.codeText = game.add.text(80,140,'code\n', { fontSize:'12px', fill: '#000' });
+	ivoMenuButtons.codeText.visible=false;
 	ivoCommandsBackground = game.add.sprite(40,40,'menuCommands');
 	ivoCommandsBackground.visible=false;
-	ivoMenuButtons.moveLeft=game.add.button(45,100,'menuMoveLeft');
+	ivoMenuButtons.moveLeft=game.add.button(45,100,'menuMoveLeft', clickMoveLeft);
 	ivoMenuButtons.moveLeft.visible=false;
 	ivoMenuButtons.moveRight=game.add.button(45,200,'menuMoveRight', clickMoveRight);
 	ivoMenuButtons.moveRight.visible=false;
@@ -347,19 +345,18 @@ function loadLevel(level) {
 	ivoMenuButtons.blueDoor.visible=false;
 	ivoMenuButtons.yellowDoor=game.add.button(45,400,'menuYellowDoor');
 	ivoMenuButtons.yellowDoor.visible=false;
-	ivoMenuButtons.codeText = game.add.text(80,140,'code\n', { fontSize:'12px', fill: '#000' });
-	ivoMenuButtons.codeText.visible=false;
+	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 }
 function spendCard(){
 	collectedPunchcards--;
 	spentPunchcards++;
 	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 }
+function updateCounter() {
+    punchcardText.text = "timer hit";
+}
 //function render() {
-    //  Useful debug things you can turn on to see what's happening
-
-
-
+	//game.debug.text('Time until event: ' + timer.duration.toFixed(0), 32, 32);
     // game.debug.playerBounds(player);
 
     // game.debug.cameraInfo(game.camera, 32, 32);
