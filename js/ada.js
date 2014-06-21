@@ -15,12 +15,12 @@ var exitArrow;
 var cursors;
 var machine;
 var timer;
-
+var timerIsRunning=false;
 var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-var gravity=850;
+var gravity=950;
 var spikes;
 var punchcards;
 var collectedPunchcards = 0;
@@ -37,19 +37,19 @@ var mainState = {
 	    font: '40px Helvetica',
 	    fill: '#999'
 	});
-    game.load.image('plainBackground', 'assets/plain-background.png');
+    //game.load.image('plainBackground', 'assets/plain-background.png');
     game.load.image('ground', 'assets/platform.png');
 	game.load.image('spike', 'assets/spike.png');
     game.load.image('introScreen', 'assets/intro-exterior.jpg');
 	game.load.image('ada', 'assets/ada.png');
 	game.load.image('punchcard', 'assets/punchcard.png');
-	game.load.image('ivo', 'assets/ivo.png');
+	game.load.image('ivo', 'assets/ivo-drawn.png');
 	game.load.image('blueDoor','assets/blue-door.png');
 	game.load.image('exitArrow','assets/exit-arrow.png');
 	game.load.image('punchcardMenu','assets/punchcard-menu.jpg');
 	game.load.image('menuButtonAdd','assets/menu-button-add.jpg');
 	game.load.image('punchcardMenu','assets/punchcard-menu.jpg');
-	game.load.image('menuCommands','assets/menu-commands.png');
+	game.load.image('menuCommands','assets/menu-commands.jpg');
 	game.load.image('menuEject','assets/menu-eject-cards.png');
 	//game.load.image('menuExit','assets/menu-exit.png');
 	game.load.image('menuExecute','assets/menu-execute.png');
@@ -60,7 +60,7 @@ var mainState = {
 	game.load.image('menuRepeat','assets/menu-repeat.png');
 	game.load.image('menuWait','assets/menu-wait.png');
 	game.load.image('menuGravity','assets/menu-reverse-gravity.png');
-	game.load.tilemap('level-1', 'assets/level-1-test.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-1', 'assets/level-1.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-2', 'assets/level-2.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
@@ -126,12 +126,14 @@ var mainState = {
 		}
 		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
 		{
-			player.body.velocity.y = -420;
+			player.body.velocity.y = -470;//jump
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
 			hideCommandsMenu();
 			hideMenu();
 		}
-
+		if (timerIsRunning){
+			timerText.text='Waiting: ' + timer.duration.toFixed(0);
+		}
 	}
 }
 var menuState = {
@@ -210,21 +212,24 @@ function clickExecute (){
 		doors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
 		hideMenu();
-		timer.start();//For testing purposes
-		timerText.text='Time until event: ' + timer.duration.toFixed(0);
 	} else if (commandQueue[0]=="Move right"){
 		machine.body.immovable = false;
-		machine.body.velocity.x=400;
+		machine.body.velocity.x=600;
 		if (machine.body.touching.up) {
 			player.body.velocity.x=machine.body.velocity.x;
 		}
 		hideMenu();
 	} else if (commandQueue[0]=="Move left"){
 		machine.body.immovable = false;
-		machine.body.velocity.x=-400;
+		machine.body.velocity.x=-600;
 		if (machine.body.touching.up) {
 			player.body.velocity.x=machine.body.velocity.x;
 		}
+		hideMenu();
+	} else if (commandQueue[0]=="Wait 5 seconds"){
+		timerIsRunning=true;
+		timer.start();
+		timerText.text='Waiting: ' + timer.duration.toFixed(0);
 		hideMenu();
 	}
 }
@@ -341,7 +346,7 @@ function loadLevel(level) {
 	}, this);
 
 	map.setCollisionBetween(1, 4);
-	player = game.add.sprite(64, 200, 'ada');
+	player = game.add.sprite(96, 200, 'ada');
 	game.physics.arcade.enable(player);
 	player.body.velocity.x=0;
 	player.body.velocity.y=0;
@@ -352,7 +357,7 @@ function loadLevel(level) {
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
-	machine = game.add.sprite(200, 200, 'ivo');
+	machine = game.add.sprite(224, 200, 'ivo');
 	game.physics.arcade.enable(machine);
 	machine.body.collideWorldBounds = true;
 	machine.body.immovable = false;
@@ -387,6 +392,7 @@ function loadLevel(level) {
 	ivoMenuButtons.reverseGravity=game.add.button(45,425,'menuGravity',clickGravity);
 	ivoMenuButtons.reverseGravity.visible=false;
 	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
+	level++;
 }
 function spendCard(){
 	collectedPunchcards--;
@@ -394,7 +400,8 @@ function spendCard(){
 	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 }
 function updateCounter() {
-    punchcardText.text = "timer hit";
+	timerIsRunning=false;
+	timerText.text="Bam";
 }
 //function render() {
 	//game.debug.text('Time until event: ' + timer.duration.toFixed(0), 32, 32);
