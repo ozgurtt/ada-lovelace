@@ -30,8 +30,6 @@ var tutorialText;
 var codeText;
 var timerText;
 var commandQueue=[];
-var queuePosition=0;
-var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 var level=1;
 var mainState = {
     preload: function() {
@@ -77,11 +75,15 @@ var mainState = {
 		//  Set it to wait 5 seconds to trigger an event
 		timer.loop(5000, updateCounter, this);
 		//start timer in clickExecute function
-		
+		timerText = game.add.text(460, 16, '', { fontSize: '32px', fill: '#000' });
+		timerText.fixedToCamera=true;
+		punchcardText = game.add.text(260, 16, 'punchcards: 0', { fontSize: '32px', fill: '#000' });
+		punchcardText.fixedToCamera=true;
+		tutorialText.text="Arrow keys to move and jump";
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
 		codeText.visible=false;
 		cursors = game.input.keyboard.createCursorKeys();
-		loadLevel(3);
+		loadLevel(level);
 						
 	},
 	
@@ -99,13 +101,12 @@ var mainState = {
 		if(game.physics.arcade.distanceBetween(player, machine)<100) {
 			if (!closeToIvo){
 				closeToIvo=true;
-				//tutorialText.text="press enter to program Ivo with punch cards";
+				tutorialText.text="press enter to program Ivo with punch cards";
 			}
 			inputCode(player,machine);
 		} else if (closeToIvo) {
 			closeToIvo=false;
-			//tutorialText.text="A command consumes a punch card";
-			
+			tutorialText.text="A command consumes a punch card";
 			hideMenu();
 		}			
 		//  Stop Ada
@@ -185,7 +186,7 @@ function clickButtonAdd () { //No point in showing the commands menu unless ther
 		ivoMenuButtons.wait.visible=true;
 		ivoMenuButtons.reverseGravity.visible=true;
 	} else if (exitArrow.getAt(0).exists){
-		tutorialText.text="Head out";
+		tutorialText.text="Head out";//why won't it work?
 	} else {
 		tutorialText.text="grab that card first";
 	}
@@ -207,22 +208,13 @@ function clickEject (){
 		punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 		commandQueue.length=0;
 		ivoMenuButtons.codeText.text="";
-		queuePosition=0;
 	}
 }
 function clickExecute (){
-	if (beginQueue){
-		queuePosition=0;
-	}
-	if (commandQueue[queuePosition]=="Open blue door") {//testing: get this working first.
+	if (commandQueue[0]=="Open blue door") {
 		doors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
 		hideMenu();
-		if (commandQueue.length>queuePosition+1){
-			alert("commandQueue.length:"+commandQueue.length+"queuePosition+1:"+queuePosition+1);
-			beginQueue=false;
-			clickExecute();//door opens instantly, move on to the next
-		}
 	} else if (commandQueue[0]=="Move right"){
 		machine.body.immovable = false;
 		machine.body.velocity.x=650;
@@ -243,10 +235,6 @@ function clickExecute (){
 		timerText.text='Waiting: ' + timer.duration.toFixed(0);
 		hideMenu();
 	}
-	//if (commandQueue.length>queuePosition+1){
-		//beginQueue=false;
-		//clickExecute();
-	//}
 }
 function clickMoveRight(){
 	hideCommandsMenu();
@@ -262,11 +250,10 @@ function clickMoveLeft(){
 }
 function clickBlueDoor (){
 	
-	commandQueue[queuePosition]="Open blue door";
+	commandQueue[0]="Open blue door";
 	hideCommandsMenu();
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[queuePosition]+"\n";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
 	spendCard();
-	queuePosition++
 }
 function clickRepeat (){
 	
@@ -328,31 +315,6 @@ function loadLevel(level) {
 	if (ivoMenu){
 		ivoMenu.destroy();
 	}
-	if (tutorialText){
-		tutorialText.destroy();
-	}
-	if (timerText){
-		timerText.destroy();
-	}
-	if (punchcardText){
-		punchcardText.destroy();
-	}
-	
-	//var codeText;
-	//var timerText;
-	if (level==1){
-		tutorialText = game.add.text(50, 250, "Move Ada with arrows. \npress enter near Ivo to program with punch cards", {
-	    font: '40px Helvetica',
-	    fill: '#999'
-		});
-	}
-	if (level==2){
-		tutorialText = game.add.text(100, 250, "When you get stuck, press 'r' to reset.  \nPunch cards are rewriteable", {
-	    font: '40px Helvetica',
-	    fill: '#999'
-		});
-	}
-	
 	collectedPunchcards = 0;
 	spentPunchcards=0;
 	map = game.add.tilemap('level-'+level);
@@ -432,14 +394,8 @@ function loadLevel(level) {
 	ivoMenuButtons.wait.visible=false;
 	ivoMenuButtons.reverseGravity=game.add.button(45,425,'menuGravity',clickGravity);
 	ivoMenuButtons.reverseGravity.visible=false;
-	timerText = game.add.text(460, 16, '', { fontSize: '32px', fill: '#000' });
-	timerText.fixedToCamera=true;
-	punchcardText = game.add.text(260, 16, 'Punchcards: ' + collectedPunchcards, { fontSize: '32px', fill: '#000' });
-	punchcardText.fixedToCamera=true;
-	commandQueue.length=0;
-	queuePosition=0;
-
-
+	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
+	//level++;
 }
 function spendCard(){
 	collectedPunchcards--;
