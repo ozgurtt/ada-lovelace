@@ -1,7 +1,9 @@
 /* Ada - a puzzle platformer
    By: Luc CB
-   TODO: Add credits
-   -level creation/destruction, next goal.
+   TODO: 
+   -
+   Bug list:
+   execute the queue, then add another, causes problems.
 */
 
 var game = new Phaser.Game(992, 512, Phaser.AUTO, '');
@@ -15,7 +17,7 @@ var exitArrow;
 var cursors;
 var machine;
 var timer;
-var timerIsRunning=false;
+//var timerIsRunning=false;
 var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
@@ -30,8 +32,10 @@ var tutorialText;
 var codeText;
 var timerText;
 var commandQueue=[];
-var queuePosition=0;
-var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
+var writePosition=0;//for writing new commands and reading through them
+var readPosition=0;
+//var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
+
 var level=1;
 var mainState = {
     preload: function() {
@@ -75,7 +79,9 @@ var mainState = {
 		//game.stage.backgroundColor = '#000';
     	timer = game.time.create(false);
 		//  Set it to wait 5 seconds to trigger an event
-		timer.loop(5000, updateCounter, this);
+		//timer.add(5000, updateCounter, this);
+		
+		//timer.loop(5000, updateCounter, this);//shouldn't loop
 		//start timer in clickExecute function
 		
 		codeText = game.add.text(100,300,'code', { fontSize:'12px', fill: '#000' });
@@ -132,12 +138,12 @@ var mainState = {
 			hideCommandsMenu();
 			hideMenu();
 		}
-		if (timerIsRunning){
+		if (timer.running){
 			timerText.text='Waiting: ' + timer.duration.toFixed(0);
 		}
-		if (!beginQueue){
-			clickExecute();//check in update for next queue action, doing so within clickExecute causes problems.
-		}
+		//if (!beginQueue){
+			//clickExecute();//check in update for next queue action, doing so within clickExecute causes problems.
+		//}
 	}
 }
 var menuState = {
@@ -205,28 +211,31 @@ function hideCommandsMenu(){
 }
 function clickEject (){
 	if (spentPunchcards>0){
-		collectedPunchcards=spentPunchcards;
+		collectedPunchcards+=spentPunchcards;
 		spentPunchcards=0;
 		punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 		commandQueue.length=0;
 		ivoMenuButtons.codeText.text="";
-		queuePosition=0;
+		readPosition=0;
+		writePosition=0;
 	}
 }
 function clickExecute (){
-	if (beginQueue){
-		queuePosition=0;
-	}
-	if (commandQueue[queuePosition]=="Open blue door") {//testing: get this working first.
+	//if (beginQueue){
+		//readPosition=0;//fix this stuff up
+	//}
+	if (commandQueue[readPosition]=="Open blue door") {//testing: get this working first.
 		doors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
 		hideMenu();
-		if (commandQueue.length>queuePosition+1){
+		if (commandQueue.length>readPosition+1){
 			//alert("commandQueue.length:"+commandQueue.length+"queuePosition"+queuePosition);
-			beginQueue=false;
-			queuePosition++;
+			//beginQueue=false;
+			readPosition++;
+			clickExecute();
 		} else {
-			beginQueue=true;
+			//beginQueue=true;
+			readPosition=0;
 		}
 	} else if (commandQueue[0]=="Move right"){
 		machine.body.immovable = false;
@@ -242,11 +251,13 @@ function clickExecute (){
 			player.body.velocity.x=machine.body.velocity.x;
 		}
 		hideMenu();
-	} else if (commandQueue[queuePosition]=="Wait 5 seconds"){
-		timerIsRunning=true;
+	} else if (commandQueue[readPosition]=="Wait 5 seconds"){
+		//timerIsRunning=true;
+		timer.add(5000, updateCounter, this);//create another event for next time this is used.
 		timer.start();
 		timerText.text='Waiting: ' + timer.duration.toFixed(0);
 		hideMenu();
+		
 	}
 	//if (commandQueue.length>queuePosition+1){
 		//beginQueue=false;
@@ -267,11 +278,11 @@ function clickMoveLeft(){
 }
 function clickBlueDoor (){
 	
-	commandQueue[queuePosition]="Open blue door";
+	commandQueue[writePosition]="Open blue door";
 	hideCommandsMenu();
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[queuePosition]+"\n";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
-	queuePosition++
+	writePosition++
 }
 function clickRepeat (){
 	
@@ -282,11 +293,11 @@ function clickRepeat (){
 }
 function clickWait (){
 	
-	commandQueue[queuePosition]="Wait 5 seconds";
+	commandQueue[writePosition]="Wait 5 seconds";
 	hideCommandsMenu();
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[queuePosition]+"\n";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
-	queuePosition++;
+	writePosition++;
 }
 function clickGravity (){
 	
@@ -443,7 +454,8 @@ function loadLevel(level) {
 	punchcardText = game.add.text(260, 16, 'Punchcards: ' + collectedPunchcards, { fontSize: '32px', fill: '#000' });
 	punchcardText.fixedToCamera=true;
 	commandQueue.length=0;
-	queuePosition=0;
+	readPosition=0;
+	writePosition=0;
 
 
 }
@@ -453,16 +465,20 @@ function spendCard(){
 	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
 }
 function updateCounter() {
-	timerIsRunning=false;
-	timerText.text="Bam";
-	if (commandQueue.length>queuePosition+1){
+	//timerIsRunning=false;
+	//alert("Bam");
+	//timer.stop();
+	if (commandQueue.length>readPosition+1){
 			//alert("commandQueue.length:"+commandQueue.length+"queuePosition"+queuePosition);
-			beginQueue=false;
-			queuePosition++;
-			//clickExecute();//door opens instantly, move on to the next
-	} else {
-		beginQueue=true;
-	}
+			//beginQueue=false;
+			readPosition++;
+			clickExecute();
+		} else {
+			//beginQueue=true;
+			readPosition=0;
+		}
+	
+	
 }
 //function render() {
 	//game.debug.text('Time until event: ' + timer.duration.toFixed(0), 32, 32);
