@@ -22,7 +22,7 @@ var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-var gravity=950;
+var gravity=1050;
 var spikes;
 var punchcards;
 var collectedPunchcards = 0;
@@ -34,6 +34,7 @@ var timerText;
 var commandQueue=[];
 var writePosition=0;//for writing new commands and reading through them
 var readPosition=0;
+var executeNextOnStop=false;
 //var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 
 var level=1;
@@ -117,11 +118,18 @@ var mainState = {
 		//  Stop Ada
 		if ((machine.body.touching.up)&&(machine.body.velocity.x!=0)) {
 			player.body.velocity.x=machine.body.velocity.x;
+			//player.body.gravity=gravity-400;
+			
 		} else {
 			player.body.velocity.x = 0;
 		}
 		if ((machine.body.velocity.x==0) && (machine.body.velocity.y==0)) {
+			
 			machine.body.immovable=true;//When stationary we don't want Ivo be pushed around.
+			if (executeNextOnStop) {
+				executeNextOnStop=false;
+				clickExecute();
+			}
 		}
 	
 		if (cursors.left.isDown) {
@@ -133,7 +141,7 @@ var mainState = {
 		}
 		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
 		{
-			player.body.velocity.y = -450;//jump
+			player.body.velocity.y = -480;//jump
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
 			hideCommandsMenu();
 			hideMenu();
@@ -237,20 +245,27 @@ function clickExecute (){
 			//beginQueue=true;
 			readPosition=0;
 		}
-	} else if (commandQueue[0]=="Move right"){
+	} else if (commandQueue[readPosition]=="Move right"){
 		machine.body.immovable = false;
 		machine.body.velocity.x=650;
 		if (machine.body.touching.up) {
 			player.body.velocity.x=machine.body.velocity.x;
 		}
 		hideMenu();
-	} else if (commandQueue[0]=="Move left"){
+	} else if (commandQueue[readPosition]=="Move left"){
 		machine.body.immovable = false;
 		machine.body.velocity.x=-650;
 		if (machine.body.touching.up) {
 			player.body.velocity.x=machine.body.velocity.x;
 		}
 		hideMenu();
+		if (commandQueue.length>readPosition+1){
+			readPosition++;
+			executeNextOnStop=true;
+		} else {
+			//beginQueue=true;
+			readPosition=0;
+		}
 	} else if (commandQueue[readPosition]=="Wait 5 seconds"){
 		//timerIsRunning=true;
 		timer.add(5000, updateCounter, this);//create another event for next time this is used.
@@ -265,15 +280,15 @@ function clickExecute (){
 	//}
 }
 function clickMoveRight(){
+	commandQueue[writePosition]="Move right";
 	hideCommandsMenu();
-	commandQueue[0]="Move right";
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition];
 	spendCard();
 }
 function clickMoveLeft(){
 	hideCommandsMenu();
-	commandQueue[0]="Move left";
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
+	commandQueue[writePosition]="Move left";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition];
 	spendCard();
 }
 function clickBlueDoor (){
@@ -282,7 +297,6 @@ function clickBlueDoor (){
 	hideCommandsMenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
-	writePosition++
 }
 function clickRepeat (){
 	
@@ -297,7 +311,6 @@ function clickWait (){
 	hideCommandsMenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
-	writePosition++;
 }
 function clickGravity (){
 	
@@ -364,13 +377,13 @@ function loadLevel(level) {
 		});
 	}
 	if (level==2){
-		tutorialText = game.add.text(100, 250, "When you get stuck, press 'r' to reset.  \nPunch cards are rewriteable", {
+		tutorialText = game.add.text(100, 250, "When you get stuck, press 'r' to reset.  \nPunch cards are one line of code. Eject to rewrite.", {
 	    font: '40px Helvetica',
 	    fill: '#999'
 		});
 	}
 	
-	collectedPunchcards = 0;
+	collectedPunchcards = 2;
 	spentPunchcards=0;
 	map = game.add.tilemap('level-'+level);
 	map.addTilesetImage('ada-tileset');
@@ -408,47 +421,62 @@ function loadLevel(level) {
 	game.physics.arcade.enable(player);
 	player.body.velocity.x=0;
 	player.body.velocity.y=0;
-	player.body.bounce.y = 0.2;
+	//player.body.bounce.y = 0.2;
 	player.body.gravity.y = gravity;
 	player.body.collideWorldBounds = true;
 	player.body.maxVelocity.y = 500;//keep her from falling through tiles
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
-	machine = game.add.sprite(224, 180, 'ivo');
+	machine = game.add.sprite(214, 180, 'ivo');
 	game.physics.arcade.enable(machine);
 	machine.body.collideWorldBounds = true;
 	machine.body.immovable = false;
-	machine.body.gravity.y = gravity-100;//ensures Ada will stick to the top of Ivo while they fall, she has more gravity.	
+	machine.body.gravity.y = gravity-500;//ensures Ada will stick to the top of Ivo while they fall, she has more gravity.
+	//machine.body.maxVelocity.x=50;<-slow Ivo is fun to play with. Special level?
+	machine.body.maxVelocity.y=120;//Hack because Ada's gravity pushed Ivo down too fast in mid air.
 	machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
 	//setting up the menu and submenu for Ivo but not displaying until we need to.
 	//ordered so that the later images are on top
 	ivoMenu = game.add.sprite(0,0,'punchcardMenu');
 	ivoMenu.visible=false;
+	ivoMenu.fixedToCamera=true;
 	ivoMenuButtons.addCommand=game.add.button(15, 5, 'menuButtonAdd', clickButtonAdd);
 	ivoMenuButtons.addCommand.visible=false;
+	ivoMenuButtons.addCommand.fixedToCamera=true;
 	ivoMenuButtons.exit=game.add.button(15,400,'menuEject', clickEject);
 	ivoMenuButtons.exit.visible=false;
+	ivoMenuButtons.exit.fixedToCamera=true;
 	ivoMenuButtons.execute=game.add.button(15,260,'menuExecute', clickExecute);
 	ivoMenuButtons.execute.visible=false;
+	ivoMenuButtons.execute.fixedToCamera=true;
 	ivoMenuButtons.codeText = game.add.text(10,140,'code\n', {font:'40px Helvetica', fill: '#000' });
 	ivoMenuButtons.codeText.visible=false;
+	ivoMenuButtons.codeText.fixedToCamera=true;
 	ivoCommandsBackground = game.add.sprite(40,0,'menuCommands');
 	ivoCommandsBackground.visible=false;
+	ivoCommandsBackground.fixedToCamera=true;
 	ivoMenuButtons.moveLeft=game.add.button(45,5,'menuMoveLeft', clickMoveLeft);
 	ivoMenuButtons.moveLeft.visible=false;
+	ivoMenuButtons.moveLeft.fixedToCamera=true;
 	ivoMenuButtons.moveRight=game.add.button(45,75,'menuMoveRight', clickMoveRight);
 	ivoMenuButtons.moveRight.visible=false;
+	ivoMenuButtons.moveRight.fixedToCamera=true;
 	ivoMenuButtons.blueDoor=game.add.button(45,145,'menuBlueDoor',clickBlueDoor);
 	ivoMenuButtons.blueDoor.visible=false;
+	ivoMenuButtons.blueDoor.fixedToCamera=true;
 	ivoMenuButtons.yellowDoor=game.add.button(45,215,'menuYellowDoor');
 	ivoMenuButtons.yellowDoor.visible=false;
+	ivoMenuButtons.yellowDoor.fixedToCamera=true;
 	ivoMenuButtons.repeat=game.add.button(45,285,'menuRepeat',clickRepeat);
 	ivoMenuButtons.repeat.visible=false;
+	ivoMenuButtons.repeat.fixedToCamera=true;
 	ivoMenuButtons.wait=game.add.button(45,355,'menuWait',clickWait);
 	ivoMenuButtons.wait.visible=false;
+	ivoMenuButtons.wait.fixedToCamera=true;
 	ivoMenuButtons.reverseGravity=game.add.button(45,425,'menuGravity',clickGravity);
 	ivoMenuButtons.reverseGravity.visible=false;
+	ivoMenuButtons.reverseGravity.fixedToCamera=true;
 	timerText = game.add.text(460, 16, '', { fontSize: '32px', fill: '#000' });
 	timerText.fixedToCamera=true;
 	punchcardText = game.add.text(260, 16, 'Punchcards: ' + collectedPunchcards, { fontSize: '32px', fill: '#000' });
@@ -463,6 +491,7 @@ function spendCard(){
 	collectedPunchcards--;
 	spentPunchcards++;
 	punchcardText.text = 'Punchcards: ' + collectedPunchcards;
+	writePosition++;
 }
 function updateCounter() {
 	//timerIsRunning=false;
