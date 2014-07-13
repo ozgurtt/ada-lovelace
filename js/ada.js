@@ -74,6 +74,7 @@ var mainState = {
 	game.load.tilemap('level-3', 'assets/level-3.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-4', 'assets/level-4.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-5', 'assets/level-5.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-10', 'assets/level-10.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
 
@@ -138,8 +139,17 @@ var mainState = {
 		//if ((player.body.velocity.y<5)&&(player.body.velocity.y>-5)){
 			//executeNextonAdaStop=false;
 			//clickExecute();
-		//}
-			
+		//  }
+		if (player.body.blocked.up){
+			if (executeNextOnAdaStop){
+				executeNextOnAdaStop=false;
+				clickExecute();
+				alert("executeNextOnAdaStop");
+			}
+		} else if (player.body.blocked.down&&player.gravity>0&&executeNextOnAdaStop==true){
+			executeNextOnAdaStop=false;
+			clickExecute();
+		}
 		if (cursors.left.isDown) {
 			player.body.velocity.x = -220;
 			player.scale.x = -1;
@@ -147,14 +157,13 @@ var mainState = {
 			player.body.velocity.x = 220;
 			player.scale.x = 1;
 		}
-		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
+		if (cursors.up.isDown && (player.body.onFloor() || player.body.touching.down)&&player.body.gravity.y>0)//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
 		{
 			player.body.velocity.y = jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
 			hideCommandsMenu();
 			hideMenu();
-		} else if (((cursors.up.isDown)||(cursors.down.isDown))&&(player.body.blocked.up))//player may be standing on tiles or entities.  onFloor tests against tiles and body.touching other objects.
-		{
+		} else if (((cursors.up.isDown)||(cursors.down.isDown))&&(player.body.blocked.up)&&player.body.gravity.y<0) {//for jumping when Ada's gravity is reversed
 			player.body.velocity.y = -jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.R)) {
 			alert("r or R");
@@ -298,8 +307,11 @@ function clickExecute (){
 	} else if (commandQueue[readPosition]=="Reverse Ada's gravity") {//testing: get this working first.
 		hideMenu();
 		//gravity=-1050;//for testing. should be gravity=(-gravity);
-		player.body.gravity.y=-gravity;
-		player.scale.y = -1;
+		//gravity=-gravity;
+		player.body.gravity.y=-player.body.gravity.y;
+		console.log(player.scale.y);
+		player.scale.y = -player.scale.y;
+		console.log(player.scale.y);
 		if (commandQueue.length>readPosition+1){
 			readPosition++;
 			executeNextOnAdaStop=true;
@@ -348,7 +360,7 @@ function clickWait (){
 }
 function clickGravity (){
 	
-	commandQueue[0]="Reverse Ada's gravity";
+	commandQueue[writePosition]="Reverse Ada's gravity";
 	hideCommandsMenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
