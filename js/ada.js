@@ -27,6 +27,7 @@ var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
 var gravity=1050;
 var spikes;
 var switches;
+var switchTriggered=false;
 var punchcards;
 var collectedPunchcards = 0;
 var spentPunchcards=0;
@@ -41,7 +42,7 @@ var executeNextOnStop=false;
 var executeNextOnAdaStop=false;
 //var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 
-var level=5;//default 1, change here to move starting levels
+var level=6;//default 1, change here to move starting levels
 var mainState = {
     preload: function() {
 	game.stage.setBackgroundColor('#333');
@@ -50,7 +51,7 @@ var mainState = {
 	    fill: '#999'
 	});
     game.load.image('ground', 'assets/platform.png');
-	game.load.image('spike', 'assets/spike.png');
+	game.load.image('spike', 'assets/isotropic-radiator.png');
     //game.load.image('background', 'assets/background.jpg');
 	//game.load.image('ada', 'assets/ada.png');
 	game.load.spritesheet('ada','assets/ada-animated.png',32,64,8);
@@ -223,9 +224,18 @@ function touchSpikes(player,spikes){
 	//tutorialText.text="ouch";
 	loadLevel(level); //for testing. should be loadLevel(level);
 }
-function touchSwitches(player,switches){
-	//tutorialText.text="ouch";
-	console.log("hit") //for testing. should be loadLevel(level);
+function touchSwitches(machine,switches){
+	if (level==5&&!switchTriggered) {
+		greyDoors.forEach(function(s) {
+			s.body.x +=200;
+		}, this);
+		switchTriggered=true;
+	} else if (level==5&&switchTriggered) {
+		greyDoors.forEach(function(s) {
+			s.body.x -=200;
+		}, this);
+		switchTriggered=false;
+	}
 }
 function inputCode (player, machine){ //player can start programming when she's close to Ivo
 	if(this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)){
@@ -407,6 +417,9 @@ function loadLevel(level) {
 	if (blueDoors){
 		blueDoors.destroy();
 	}
+	if (greyDoors){
+		greyDoors.destroy();
+	}
 	if (exitArrow){
 		exitArrow.destroy();
 	}
@@ -475,7 +488,7 @@ function loadLevel(level) {
 	greyDoors=game.add.group();
 	greyDoors.enableBody=true;
 	map.createFromObjects('entities', 9, 'greyDoor', 0, true, false, greyDoors);
-	blueDoors.forEach(function(s) {
+	greyDoors.forEach(function(s) {
 		s.body.immovable = true;
 	}, this);
 	spikes=game.add.group();
@@ -490,7 +503,7 @@ function loadLevel(level) {
 	switches.forEach(function(s) {
 		s.body.immovable = true;
 	}, this);
-
+	switchTriggered=false;
 	map.setCollisionBetween(1, 4);
 	player = game.add.sprite(96, 180, 'ada');
 	game.physics.arcade.enable(player);
