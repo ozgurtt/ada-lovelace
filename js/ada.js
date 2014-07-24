@@ -52,7 +52,7 @@ var mainState = {
 	});
     game.load.image('ground', 'assets/platform.png');
 	game.load.image('spike', 'assets/isotropic-radiator.png');
-    //game.load.image('background', 'assets/background.jpg');
+    game.load.image('background', 'assets/background.jpg');
 	//game.load.image('ada', 'assets/ada.png');
 	game.load.spritesheet('ada','assets/ada-animated.png',32,64,8);
 	game.load.image('punchcard', 'assets/punchcard.png');
@@ -87,8 +87,8 @@ var mainState = {
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
-		game.stage.backgroundColor = '#bfbeb2';
-		//game.add.sprite(0, 0, 'background');
+		//game.stage.backgroundColor = '#bfbeb2';
+		game.add.sprite(0, 0, 'background');
     	timer = game.time.create(false);
 		//  Set it to wait 5 seconds to trigger an event
 		//timer.add(5000, updateCounter, this);
@@ -175,7 +175,7 @@ var mainState = {
 		{
 			player.body.velocity.y = jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
-			hideCommandsMenu();
+			//hideCommandsMenu();
 			hideMenu();
 		} else if (((cursors.up.isDown)||(cursors.down.isDown))&&(player.body.blocked.up)&&player.body.gravity.y<0) {//for jumping when Ada's gravity is reversed
 			player.body.velocity.y = -jumpVelocity;
@@ -252,13 +252,13 @@ function clickButtonAdd () { //No point in showing the commands menu unless ther
 		ivoMenuButtons.repeat.visible=true;
 		ivoMenuButtons.wait.visible=true;
 		ivoMenuButtons.reverseGravity.visible=true;
-	} else if (exitArrow.getAt(0).exists){
-		tutorialText.text="Head out";
-	} else {
-		tutorialText.text="grab that card first";
-	}
+	} //else if (exitArrow.getAt(0).exists){
+		//tutorialText.text="Head out";
+	//} else {
+		//tutorialText.text="grab that card first";
+	//}
 }
-function hideCommandsMenu(){
+/*function hideCommandsMenu(){
 	ivoCommandsBackground.visible=false;
 	ivoMenuButtons.moveLeft.visible=false;
 	ivoMenuButtons.moveRight.visible=false;
@@ -267,7 +267,7 @@ function hideCommandsMenu(){
 	ivoMenuButtons.repeat.visible=false;
 	ivoMenuButtons.wait.visible=false;
 	ivoMenuButtons.reverseGravity.visible=false;
-}
+}*/
 function clickEject (){
 	if (spentPunchcards>0){
 		collectedPunchcards+=spentPunchcards;
@@ -351,13 +351,13 @@ function clickExecute (){
 	//}
 }
 function clickMoveRight(){
-	hideCommandsMenu();
+	//hidecommandsmenu();
 	commandQueue[writePosition]="Move right";
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
 }
 function clickMoveLeft(){
-	hideCommandsMenu();
+	//hidecommandsmenu();
 	commandQueue[writePosition]="Move left";
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
@@ -365,28 +365,28 @@ function clickMoveLeft(){
 function clickBlueDoor (){
 	
 	commandQueue[writePosition]="Open blue door";
-	hideCommandsMenu();
+	//hidecommandsmenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
 }
 function clickRepeat (){
 	
 	commandQueue[0]="Repeat";
-	hideCommandsMenu();
+	//hidecommandsmenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
 	spendCard();
 }
 function clickWait (){
 	
 	commandQueue[writePosition]="Wait 5 seconds";
-	hideCommandsMenu();
+	//hidecommandsmenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
 }
 function clickGravity (){
 	
 	commandQueue[writePosition]="Reverse Ada's gravity";
-	hideCommandsMenu();
+	//hidecommandsmenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
 	spendCard();
 }
@@ -396,6 +396,13 @@ function showMenu() {
 	ivoMenuButtons.exit.visible=true;
 	ivoMenuButtons.execute.visible=true;
 	ivoMenuButtons.codeText.visible=true;
+	ivoMenuButtons.moveLeft.visible=true;
+		ivoMenuButtons.moveRight.visible=true;
+		ivoMenuButtons.blueDoor.visible=true;
+		//ivoMenuButtons.yellowDoor.visible=true;
+		//ivoMenuButtons.repeat.visible=true;
+		ivoMenuButtons.wait.visible=true;
+		ivoMenuButtons.reverseGravity.visible=true;
 }
 function hideMenu() {
 	ivoMenu.visible=false;
@@ -403,6 +410,13 @@ function hideMenu() {
 	ivoMenuButtons.exit.visible=false;
 	ivoMenuButtons.execute.visible=false;
 	ivoMenuButtons.codeText.visible=false;
+	ivoMenuButtons.moveLeft.visible=false;
+		ivoMenuButtons.moveRight.visible=false;
+		ivoMenuButtons.blueDoor.visible=false;
+		//ivoMenuButtons.yellowDoor.visible=false;
+		//ivoMenuButtons.repeat.visible=false;
+		ivoMenuButtons.wait.visible=false;
+		ivoMenuButtons.reverseGravity.visible=false;
 }
 function loadLevel(level) {	
 	if (layer) {
@@ -546,25 +560,25 @@ function loadLevel(level) {
 	ivoCommandsBackground = game.add.sprite(40,0,'menuCommands');
 	ivoCommandsBackground.visible=false;
 	ivoCommandsBackground.fixedToCamera=true;
-	ivoMenuButtons.moveLeft=game.add.button(45,5,'menuMoveLeft', clickMoveLeft);
+	ivoMenuButtons.moveLeft=game.add.button(80,5,'menuMoveLeft', clickMoveLeft);
 	ivoMenuButtons.moveLeft.visible=false;
 	ivoMenuButtons.moveLeft.fixedToCamera=true;
-	ivoMenuButtons.moveRight=game.add.button(45,75,'menuMoveRight', clickMoveRight);
+	ivoMenuButtons.moveRight=game.add.button(80,75,'menuMoveRight', clickMoveRight);
 	ivoMenuButtons.moveRight.visible=false;
 	ivoMenuButtons.moveRight.fixedToCamera=true;
-	ivoMenuButtons.blueDoor=game.add.button(45,145,'menuBlueDoor',clickBlueDoor);
+	ivoMenuButtons.blueDoor=game.add.button(80,145,'menuBlueDoor',clickBlueDoor);
 	ivoMenuButtons.blueDoor.visible=false;
 	ivoMenuButtons.blueDoor.fixedToCamera=true;
-	ivoMenuButtons.yellowDoor=game.add.button(45,215,'menuYellowDoor');
+	ivoMenuButtons.yellowDoor=game.add.button(80,215,'menuYellowDoor');
 	ivoMenuButtons.yellowDoor.visible=false;
 	ivoMenuButtons.yellowDoor.fixedToCamera=true;
-	ivoMenuButtons.repeat=game.add.button(45,285,'menuRepeat',clickRepeat);
+	ivoMenuButtons.repeat=game.add.button(80,285,'menuRepeat',clickRepeat);
 	ivoMenuButtons.repeat.visible=false;
 	ivoMenuButtons.repeat.fixedToCamera=true;
-	ivoMenuButtons.wait=game.add.button(45,355,'menuWait',clickWait);
+	ivoMenuButtons.wait=game.add.button(80,355,'menuWait',clickWait);
 	ivoMenuButtons.wait.visible=false;
 	ivoMenuButtons.wait.fixedToCamera=true;
-	ivoMenuButtons.reverseGravity=game.add.button(45,425,'menuGravity',clickGravity);
+	ivoMenuButtons.reverseGravity=game.add.button(80,425,'menuGravity',clickGravity);
 	ivoMenuButtons.reverseGravity.visible=false;
 	ivoMenuButtons.reverseGravity.fixedToCamera=true;
 	timerText = game.add.text(460, 16, '', { fontSize: '32px', fill: '#000' });
