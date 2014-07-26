@@ -51,8 +51,8 @@ var mainState = {
 	    fill: '#999'
 	});
     game.load.image('ground', 'assets/platform.png');
-	game.load.image('spike', 'assets/isotropic-radiator.png');
-    game.load.image('background', 'assets/background.jpg');
+	game.load.spritesheet('spike', 'assets/isotropic-radiator.png',32,32,12);
+    game.load.image('background', 'assets/background.png');
 	//game.load.image('ada', 'assets/ada.png');
 	game.load.spritesheet('ada','assets/ada-animated.png',32,64,8);
 	game.load.image('punchcard', 'assets/punchcard.png');
@@ -87,7 +87,7 @@ var mainState = {
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
-		//game.stage.backgroundColor = '#bfbeb2';
+		game.stage.backgroundColor = '#c8e9fc';
 		game.add.sprite(0, 0, 'background');
     	timer = game.time.create(false);
 		//  Set it to wait 5 seconds to trigger an event
@@ -180,7 +180,7 @@ var mainState = {
 		} else if (((cursors.up.isDown)||(cursors.down.isDown))&&(player.body.blocked.up)&&player.body.gravity.y<0) {//for jumping when Ada's gravity is reversed
 			player.body.velocity.y = -jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.R)) {
-			alert("r or R");
+			loadLevel(level);
 		}
 		
 		if (timer.running){
@@ -510,6 +510,8 @@ function loadLevel(level) {
 	map.createFromObjects('entities', 7, 'spike', 0, true, false, spikes);
 	spikes.forEach(function(s) {
 		s.body.immovable = true;
+		s.animations.add('flame');		
+    	s.animations.play('flame', 15, true);
 	}, this);
 	switches=game.add.group();
 	switches.enableBody=true;
@@ -528,7 +530,7 @@ function loadLevel(level) {
 	player.body.collideWorldBounds = true;
 	player.body.maxVelocity.y = 500;//keep her from falling through tiles
 	player.anchor.setTo(.5, .5); //so it flips around its middle
- 	player.animations.add('forward', [1,2,3], 10, true);
+ 	player.animations.add('forward', [1,2,3,4], 10, true);
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
