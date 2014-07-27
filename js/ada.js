@@ -47,7 +47,7 @@ var savedMachineX;
 var saved=false;
 //var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 
-var level=1;//default 1, change here to move starting levels
+var level=7;//default 1, change here to move starting levels
 var mainState = {
     preload: function() {
 	game.stage.setBackgroundColor('#333');
@@ -86,6 +86,7 @@ var mainState = {
 	game.load.tilemap('level-4', 'assets/level-4.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-5', 'assets/level-5.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-6', 'assets/level-6.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-7', 'assets/level-7.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-10', 'assets/level-10.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
@@ -120,7 +121,7 @@ var mainState = {
 		game.physics.arcade.collide(player, exitArrow, touchExitLight,null,this);
 		game.physics.arcade.collide(player, spikes, touchSpikes,null,this);
 		game.physics.arcade.collide(machine, switches, touchSwitches,null,this);
-		game.physics.arcade.collide(player, switches);	
+		game.physics.arcade.collide(player, switches, playerTouchSwitches,null,this);	
 		if(game.physics.arcade.distanceBetween(player, machine)<130) {
 			if (!closeToIvo){
 				closeToIvo=true;
@@ -186,6 +187,8 @@ var mainState = {
 			player.body.velocity.y = -jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.R)) {
 			loadLevel(level);
+		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.N)) {
+			touchExitLight();
 		}
 		
 		if (timer.running){
@@ -229,10 +232,14 @@ function touchSpikes(player,spikes){
 	//console.log("player.body.x:"+player.body.x);
 	//console.log("player.body.x:"+player.body.x);
 	//console.log("player.x:"+player.x);
-	player.body.y=savedPlayerY;
-	player.body.x=savedPlayerX;
-	machine.body.y=savedMachineY;
-	machine.body.x=savedMachineX;
+	if (saved){	
+		player.body.y=savedPlayerY;
+		player.body.x=savedPlayerX;
+		machine.body.y=savedMachineY;
+		machine.body.x=savedMachineX;
+	} else {
+		loadLevel(level)
+	}
 	//loadLevel(level); //for testing. should be loadLevel(level);
 }
 function touchSwitches(machine,switches){
@@ -244,6 +251,30 @@ function touchSwitches(machine,switches){
 	} else if (level==5&&switchTriggered) {
 		greyDoors.forEach(function(s) {
 			s.body.x -=200;
+		}, this);
+		switchTriggered=false;
+	}
+	else if (level==7&&!switchTriggered) {
+		greyDoors.forEach(function(s) {
+			s.body.y +=192;
+		}, this);
+		switchTriggered=true;
+	} else if (level==7&&switchTriggered) {
+		greyDoors.forEach(function(s) {
+			s.body.y -=192;
+		}, this);
+		switchTriggered=false;
+	}
+}
+function playerTouchSwitches(player,switches){
+	if (level==7&&!switchTriggered) {
+		greyDoors.forEach(function(s) {
+			s.body.y +=192;
+		}, this);
+		switchTriggered=true;
+	} else if (level==7&&switchTriggered) {
+		greyDoors.forEach(function(s) {
+			s.body.y -=192;
 		}, this);
 		switchTriggered=false;
 	}
@@ -291,11 +322,15 @@ function clickEject (){
 	}
 }
 function clickExecute (){
-	savedPlayerY=player.body.y;
-	savedPlayerX=player.body.x;
-	savedMachineY=machine.body.y;
-	savedMachineX=machine.body.x;
 	saved=true;
+	if (readPosition==0) {//if the player clicked execute, save positions for reload on death
+		console.log("readpositon:"+readPosition+"player clicked execute");
+		savedPlayerY=player.body.y;
+		savedPlayerX=player.body.x;
+		savedMachineY=machine.body.y;
+		savedMachineX=machine.body.x;
+	}
+	
 	if (commandQueue[readPosition]=="Open blue door") {//testing: get this working first.
 		blueDoors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
@@ -365,23 +400,26 @@ function clickExecute (){
 	//}
 }
 function clickMoveRight(){
-	//hidecommandsmenu();
-	commandQueue[writePosition]="Move right";
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-	spendCard();
+	if (collectedPunchcards>0){
+		commandQueue[writePosition]="Move right";
+		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+		spendCard();
+	}
 }
 function clickMoveLeft(){
-	//hidecommandsmenu();
-	commandQueue[writePosition]="Move left";
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-	spendCard();
+	if (collectedPunchcards>0){
+		commandQueue[writePosition]="Move left";
+		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+		spendCard();
+	}
 }
 function clickBlueDoor (){
-	
-	commandQueue[writePosition]="Open blue door";
-	//hidecommandsmenu();
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-	spendCard();
+	if (collectedPunchcards>0){
+		commandQueue[writePosition]="Open blue door";
+		//hidecommandsmenu();
+		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+		spendCard();
+	}
 }
 function clickRepeat (){
 	
@@ -391,18 +429,20 @@ function clickRepeat (){
 	spendCard();
 }
 function clickWait (){
-	
-	commandQueue[writePosition]="Wait 5 seconds";
-	//hidecommandsmenu();
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-	spendCard();
+	if (collectedPunchcards>0){
+		commandQueue[writePosition]="Wait 5 seconds";
+		//hidecommandsmenu();
+		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+		spendCard();
+	}
 }
 function clickGravity (){
-	
-	commandQueue[writePosition]="Reverse Ada's gravity";
-	//hidecommandsmenu();
-	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-	spendCard();
+	if (collectedPunchcards>0){
+		commandQueue[writePosition]="Reverse Ada's gravity";
+		//hidecommandsmenu();
+		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+		spendCard();
+	}
 }
 function showMenu() {
 	ivoMenu.visible=true;
@@ -486,7 +526,7 @@ function loadLevel(level) {
 	    fill: '#999'
 		});
 	}
-	
+	saved=false;
 	collectedPunchcards = 0;
 	spentPunchcards=0;
 	map = game.add.tilemap('level-'+level);
@@ -535,7 +575,7 @@ function loadLevel(level) {
 	}, this);
 	switchTriggered=false;
 	map.setCollisionBetween(1, 4);
-	player = game.add.sprite(96, 180, 'ada');
+	player = game.add.sprite(96, 300, 'ada');
 	game.physics.arcade.enable(player);
 	player.body.velocity.x=0;
 	player.body.velocity.y=0;
@@ -548,7 +588,13 @@ function loadLevel(level) {
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
-	machine = game.add.sprite(214, 180, 'ivo');
+	if (level==3||level==4||level==5) {
+		machine = game.add.sprite(214, 318, 'ivo');
+	} else if (level==7) {
+		machine = game.add.sprite(310, 318, 'ivo');
+	} else {
+		machine = game.add.sprite(214, 350, 'ivo');
+	}
 	game.physics.arcade.enable(machine);
 	machine.body.collideWorldBounds = true;
 	machine.body.immovable = false;
