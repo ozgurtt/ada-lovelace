@@ -40,9 +40,14 @@ var writePosition=0;//for writing new commands and reading through them
 var readPosition=0;
 var executeNextOnStop=false;
 var executeNextOnAdaStop=false;
+var savedPlayerY;
+var savedPlayerX;
+var savedMachineY;
+var savedMachineX;
+var saved=false;
 //var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 
-var level=6;//default 1, change here to move starting levels
+var level=1;//default 1, change here to move starting levels
 var mainState = {
     preload: function() {
 	game.stage.setBackgroundColor('#333');
@@ -221,8 +226,14 @@ function touchExitLight(player,exitLight){
 	loadLevel(level);
 }
 function touchSpikes(player,spikes){
-	//tutorialText.text="ouch";
-	loadLevel(level); //for testing. should be loadLevel(level);
+	//console.log("player.body.x:"+player.body.x);
+	//console.log("player.body.x:"+player.body.x);
+	//console.log("player.x:"+player.x);
+	player.body.y=savedPlayerY;
+	player.body.x=savedPlayerX;
+	machine.body.y=savedMachineY;
+	machine.body.x=savedMachineX;
+	//loadLevel(level); //for testing. should be loadLevel(level);
 }
 function touchSwitches(machine,switches){
 	if (level==5&&!switchTriggered) {
@@ -280,9 +291,11 @@ function clickEject (){
 	}
 }
 function clickExecute (){
-	//if (beginQueue){
-		//readPosition=0;//fix this stuff up
-	//}
+	savedPlayerY=player.body.y;
+	savedPlayerX=player.body.x;
+	savedMachineY=machine.body.y;
+	savedMachineX=machine.body.x;
+	saved=true;
 	if (commandQueue[readPosition]=="Open blue door") {//testing: get this working first.
 		blueDoors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
@@ -345,6 +358,7 @@ function clickExecute (){
 			readPosition=0;
 		}
 	}
+	
 	//if (commandQueue.length>queuePosition+1){
 		//beginQueue=false;
 		//clickExecute();
@@ -392,7 +406,7 @@ function clickGravity (){
 }
 function showMenu() {
 	ivoMenu.visible=true;
-	ivoMenuButtons.addCommand.visible=true;
+	//ivoMenuButtons.addCommand.visible=true;
 	ivoMenuButtons.exit.visible=true;
 	ivoMenuButtons.execute.visible=true;
 	ivoMenuButtons.codeText.visible=true;
@@ -473,7 +487,7 @@ function loadLevel(level) {
 		});
 	}
 	
-	collectedPunchcards = 5;
+	collectedPunchcards = 0;
 	spentPunchcards=0;
 	map = game.add.tilemap('level-'+level);
 	map.addTilesetImage('ada-tileset');
@@ -550,25 +564,25 @@ function loadLevel(level) {
 	ivoMenuButtons.addCommand=game.add.button(15, 5, 'menuButtonAdd', clickButtonAdd);
 	ivoMenuButtons.addCommand.visible=false;
 	ivoMenuButtons.addCommand.fixedToCamera=true;
-	ivoMenuButtons.exit=game.add.button(15,400,'menuEject', clickEject);
+	ivoMenuButtons.exit=game.add.button(35,467,'menuEject', clickEject);//fix up exit
 	ivoMenuButtons.exit.visible=false;
 	ivoMenuButtons.exit.fixedToCamera=true;
-	ivoMenuButtons.execute=game.add.button(15,260,'menuExecute', clickExecute);
+	ivoMenuButtons.execute=game.add.button(35,380,'menuExecute', clickExecute);
 	ivoMenuButtons.execute.visible=false;
 	ivoMenuButtons.execute.fixedToCamera=true;
-	ivoMenuButtons.codeText = game.add.text(10,140,'code\n', {font:'20px Helvetica', fill: '#444' });
+	ivoMenuButtons.codeText = game.add.text(35,260,'', {font:'20px Helvetica', fill: '#444' });
 	ivoMenuButtons.codeText.visible=false;
 	ivoMenuButtons.codeText.fixedToCamera=true;
 	ivoCommandsBackground = game.add.sprite(40,0,'menuCommands');
 	ivoCommandsBackground.visible=false;
 	ivoCommandsBackground.fixedToCamera=true;
-	ivoMenuButtons.moveLeft=game.add.button(80,5,'menuMoveLeft', clickMoveLeft);
+	ivoMenuButtons.moveLeft=game.add.button(35,10,'menuMoveLeft', clickMoveLeft);
 	ivoMenuButtons.moveLeft.visible=false;
 	ivoMenuButtons.moveLeft.fixedToCamera=true;
-	ivoMenuButtons.moveRight=game.add.button(80,75,'menuMoveRight', clickMoveRight);
+	ivoMenuButtons.moveRight=game.add.button(35,60,'menuMoveRight', clickMoveRight);
 	ivoMenuButtons.moveRight.visible=false;
 	ivoMenuButtons.moveRight.fixedToCamera=true;
-	ivoMenuButtons.blueDoor=game.add.button(80,145,'menuBlueDoor',clickBlueDoor);
+	ivoMenuButtons.blueDoor=game.add.button(35,110,'menuBlueDoor',clickBlueDoor);
 	ivoMenuButtons.blueDoor.visible=false;
 	ivoMenuButtons.blueDoor.fixedToCamera=true;
 	ivoMenuButtons.yellowDoor=game.add.button(80,215,'menuYellowDoor');
@@ -577,10 +591,10 @@ function loadLevel(level) {
 	ivoMenuButtons.repeat=game.add.button(80,285,'menuRepeat',clickRepeat);
 	ivoMenuButtons.repeat.visible=false;
 	ivoMenuButtons.repeat.fixedToCamera=true;
-	ivoMenuButtons.wait=game.add.button(80,355,'menuWait',clickWait);
+	ivoMenuButtons.wait=game.add.button(35,160,'menuWait',clickWait);
 	ivoMenuButtons.wait.visible=false;
 	ivoMenuButtons.wait.fixedToCamera=true;
-	ivoMenuButtons.reverseGravity=game.add.button(80,425,'menuGravity',clickGravity);
+	ivoMenuButtons.reverseGravity=game.add.button(35,210,'menuGravity',clickGravity);
 	ivoMenuButtons.reverseGravity.visible=false;
 	ivoMenuButtons.reverseGravity.fixedToCamera=true;
 	timerText = game.add.text(460, 16, '', { fontSize: '32px', fill: '#000' });
