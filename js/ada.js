@@ -45,9 +45,10 @@ var savedPlayerX;
 var savedMachineY;
 var savedMachineX;
 var saved=false;
+var toggleTime=0;
 //var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 
-var level=7;//default 1, change here to move starting levels
+var level=8;//default 1, change here to move starting levels
 var mainState = {
     preload: function() {
 	game.stage.setBackgroundColor('#333');
@@ -87,6 +88,7 @@ var mainState = {
 	game.load.tilemap('level-5', 'assets/level-5.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-6', 'assets/level-6.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-7', 'assets/level-7.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-8', 'assets/level-8.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-10', 'assets/level-10.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
@@ -267,16 +269,29 @@ function touchSwitches(machine,switches){
 	}
 }
 function playerTouchSwitches(player,switches){
-	if (level==7&&!switchTriggered) {
-		greyDoors.forEach(function(s) {
-			s.body.y +=192;
-		}, this);
-		switchTriggered=true;
-	} else if (level==7&&switchTriggered) {
-		greyDoors.forEach(function(s) {
-			s.body.y -=192;
-		}, this);
-		switchTriggered=false;
+	if (game.time.now > toggleTime) {
+		if (level==7&&!switchTriggered) {
+			greyDoors.forEach(function(s) {
+				s.body.y +=192;
+			}, this);
+			switchTriggered=true;
+		} else if (level==7&&switchTriggered) {
+			greyDoors.forEach(function(s) {
+				s.body.y -=192;
+			}, this);
+			switchTriggered=false;
+		} else if (level==8&&!switchTriggered) {
+			greyDoors.forEach(function(s) {
+				s.body.exists=false;
+			}, this);
+			switchTriggered=true;
+		} else if (level==8&&switchTriggered) {
+			greyDoors.forEach(function(s) {
+				s.body.exists.true;
+			}, this);
+			switchTriggered=false;
+		}
+		toggleTime=game.time.now+800;//eliminate constantly toggling when she's next to a switch.
 	}
 }
 function inputCode (player, machine){ //player can start programming when she's close to Ivo
@@ -590,8 +605,8 @@ function loadLevel(level) {
 	//player.position.setTo(32,200);
 	if (level==3||level==4||level==5) {
 		machine = game.add.sprite(214, 318, 'ivo');
-	} else if (level==7) {
-		machine = game.add.sprite(310, 318, 'ivo');
+	} else if (level==7||level==8) {
+		machine = game.add.sprite(340, 318, 'ivo');
 	} else {
 		machine = game.add.sprite(214, 350, 'ivo');
 	}
@@ -601,7 +616,7 @@ function loadLevel(level) {
 	machine.body.gravity.y = gravity-200;//ensures Ada will stick to the top of Ivo while they fall, she has more gravity.
 	//machine.body.maxVelocity.x=50;<-slow Ivo is fun to play with. Special level?
 	machine.body.maxVelocity.y=150;//Hack because Ada's gravity pushed Ivo down too fast in mid air.
-	machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
+	machine.anchor.setTo(.5,.5);//for calculating distance between player and Ivo
 	//setting up the menu and submenu for Ivo but not displaying until we need to.
 	//ordered so that the later images are on top
 	ivoMenu = game.add.sprite(0,0,'punchcardMenu');
