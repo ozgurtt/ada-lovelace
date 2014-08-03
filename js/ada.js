@@ -44,11 +44,11 @@ var savedPlayerY;
 var savedPlayerX;
 var savedMachineY;
 var savedMachineX;
-var saved=false;
+var saved=true;
 var toggleTime=0;
 //var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 
-var level=8;//default 1, change here to move starting levels
+var level=9;//default 1, change here to move starting levels
 var mainState = {
     preload: function() {
 	game.stage.setBackgroundColor('#333');
@@ -89,7 +89,7 @@ var mainState = {
 	game.load.tilemap('level-6', 'assets/level-6.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-7', 'assets/level-7.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-8', 'assets/level-8.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.tilemap('level-10', 'assets/level-10.json', null, Phaser.Tilemap.TILED_JSON);
+	game.load.tilemap('level-9', 'assets/level-9.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
 
@@ -188,9 +188,15 @@ var mainState = {
 		} else if (((cursors.up.isDown)||(cursors.down.isDown))&&(player.body.blocked.up)&&player.body.gravity.y<0) {//for jumping when Ada's gravity is reversed
 			player.body.velocity.y = -jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.R)) {
-			loadLevel(level);
+			if (game.time.now > toggleTime) {
+				loadLevel(level);
+			}
+			toggleTime=game.time.now+800;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.N)) {
-			touchExitLight();
+			if (game.time.now > toggleTime) {
+				touchExitLight();
+			}
+			toggleTime=game.time.now+800;
 		}
 		
 		if (timer.running){
@@ -234,13 +240,13 @@ function touchSpikes(player,spikes){
 	//console.log("player.body.x:"+player.body.x);
 	//console.log("player.body.x:"+player.body.x);
 	//console.log("player.x:"+player.x);
-	if (saved){	
+	if (level==5){	
+		loadLevel(level);//this level works for complete reload.
+	} else {
 		player.body.y=savedPlayerY;
 		player.body.x=savedPlayerX;
 		machine.body.y=savedMachineY;
 		machine.body.x=savedMachineX;
-	} else {
-		loadLevel(level)
 	}
 	//loadLevel(level); //for testing. should be loadLevel(level);
 }
@@ -540,14 +546,19 @@ function loadLevel(level) {
 	    font: '40px Helvetica',
 	    fill: '#999'
 		});
+		game.stage.backgroundColor = '#094782';
 	}
-	saved=false;
+	//saved=false;always saved as a work aorund for reloading current level glitch
 	collectedPunchcards = 0;
 	spentPunchcards=0;
-	map = game.add.tilemap('level-'+level);
-	map.addTilesetImage('ada-tileset');
-	layer = map.createLayer('Tile Layer 1');
-	layer.resizeWorld();
+		//reloading a previously loaded level with this stuff causes glitches, repeatedly fall 
+		//through floor
+		map = game.add.tilemap('level-'+level);
+		map.addTilesetImage('ada-tileset');
+		layer = map.createLayer('Tile Layer 1');
+		layer.resizeWorld();
+		
+	
 	punchcards = game.add.group();
     punchcards.enableBody = true;
     map.createFromObjects('entities', 5, 'punchcard', 0, true, false, punchcards);
@@ -603,10 +614,16 @@ function loadLevel(level) {
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
-	if (level==3||level==4||level==5) {
+	if (level==3||level==5) {
 		machine = game.add.sprite(214, 318, 'ivo');
-	} else if (level==7||level==8) {
-		machine = game.add.sprite(340, 318, 'ivo');
+	} else if (level==4){
+		machine = game.add.sprite(214, 250, 'ivo');
+	}  else if (level==7){
+		machine = game.add.sprite(350, 350, 'ivo');
+	} else if (level==8) {
+		machine = game.add.sprite(350, 350, 'ivo');
+	} else if (level==9) {
+		machine = game.add.sprite(214, 220, 'ivo');
 	} else {
 		machine = game.add.sprite(214, 350, 'ivo');
 	}
@@ -669,6 +686,10 @@ function loadLevel(level) {
 		blueDoors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
 	}
+	savedPlayerY=player.body.y;
+	savedPlayerX=player.body.x;
+	savedMachineY=machine.body.y;
+	savedMachineX=machine.body.x;
 
 }
 function spendCard(){
