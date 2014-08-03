@@ -24,7 +24,7 @@ var ivoMenu;
 var ivoCommandsBackground;
 var ivoMenuButtons=new Object();
 var closeToIvo=false; // Keep track of if Ada is near Ivo to issue commands.
-var gravity=750;//should be 1050
+var gravity=1050;
 var spikes;
 var switches;
 var switchTriggered=false;
@@ -40,15 +40,9 @@ var writePosition=0;//for writing new commands and reading through them
 var readPosition=0;
 var executeNextOnStop=false;
 var executeNextOnAdaStop=false;
-var savedPlayerY;
-var savedPlayerX;
-var savedMachineY;
-var savedMachineX;
-var saved=true;
-var toggleTime=0;
 //var beginQueue=true;//only true when player clicks execute button, otherwise we're moving though automatically.
 
-var level=1;//default 1, change here to move starting levels
+var level=4;//default 1, change here to move starting levels
 var mainState = {
     preload: function() {
 	game.stage.setBackgroundColor('#333');
@@ -57,8 +51,8 @@ var mainState = {
 	    fill: '#999'
 	});
     game.load.image('ground', 'assets/platform.png');
-	game.load.spritesheet('spike', 'assets/isotropic-radiator.png',32,32,12);
-    game.load.image('background', 'assets/background.png');
+	game.load.image('spike', 'assets/isotropic-radiator.png');
+    //game.load.image('background', 'assets/background.jpg');
 	//game.load.image('ada', 'assets/ada.png');
 	game.load.spritesheet('ada','assets/ada-animated.png',32,64,8);
 	game.load.image('punchcard', 'assets/punchcard.png');
@@ -87,16 +81,14 @@ var mainState = {
 	game.load.tilemap('level-4', 'assets/level-4.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-5', 'assets/level-5.json', null, Phaser.Tilemap.TILED_JSON);
 	game.load.tilemap('level-6', 'assets/level-6.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.tilemap('level-7', 'assets/level-7.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.tilemap('level-8', 'assets/level-8.json', null, Phaser.Tilemap.TILED_JSON);
-	game.load.tilemap('level-9', 'assets/level-9.json', null, Phaser.Tilemap.TILED_JSON);
+	//game.load.tilemap('level-10', 'assets/level-10.json', null, Phaser.Tilemap.TILED_JSON);
     game.load.image('ada-tileset', 'assets/ada-tileset.png');
 	},
 
 	create: function() {		
     	game.physics.startSystem(Phaser.Physics.ARCADE);
-		game.stage.backgroundColor = '#c8e9fc';
-		game.add.sprite(0, 0, 'background');
+		game.stage.backgroundColor = '#bfbeb2';
+		//game.add.sprite(0, 0, 'background');
     	timer = game.time.create(false);
 		//  Set it to wait 5 seconds to trigger an event
 		//timer.add(5000, updateCounter, this);
@@ -123,7 +115,7 @@ var mainState = {
 		game.physics.arcade.collide(player, exitArrow, touchExitLight,null,this);
 		game.physics.arcade.collide(player, spikes, touchSpikes,null,this);
 		game.physics.arcade.collide(machine, switches, touchSwitches,null,this);
-		game.physics.arcade.collide(player, switches, playerTouchSwitches,null,this);	
+		game.physics.arcade.collide(player, switches);	
 		if(game.physics.arcade.distanceBetween(player, machine)<130) {
 			if (!closeToIvo){
 				closeToIvo=true;
@@ -157,7 +149,7 @@ var mainState = {
 			//executeNextonAdaStop=false;
 			//clickExecute();
 		//  }
-		if (player.body.blocked.up||player.body.blocked.down){
+		if (player.body.blocked.up){
 			if (executeNextOnAdaStop){
 				executeNextOnAdaStop=false;
 				clickExecute();
@@ -183,20 +175,12 @@ var mainState = {
 		{
 			player.body.velocity.y = jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
-			//hideCommandsMenu();
+			hideCommandsMenu();
 			hideMenu();
-		} else if (((cursors.up.isDown)||(cursors.down.isDown))&&(player.body.touching.up||player.body.blocked.up)&&player.body.gravity.y<0) {//for jumping when Ada's gravity is reversed
+		} else if (((cursors.up.isDown)||(cursors.down.isDown))&&(player.body.blocked.up)&&player.body.gravity.y<0) {//for jumping when Ada's gravity is reversed
 			player.body.velocity.y = -jumpVelocity;
 		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.R)) {
-			if (game.time.now > toggleTime) {
-				loadLevel(level);
-			}
-			toggleTime=game.time.now+800;
-		} else if (this.game.input.keyboard.isDown(Phaser.Keyboard.N)) {
-			if (game.time.now > toggleTime) {
-				touchExitLight();
-			}
-			toggleTime=game.time.now+800;
+			alert("r or R");
 		}
 		
 		if (timer.running){
@@ -237,18 +221,8 @@ function touchExitLight(player,exitLight){
 	loadLevel(level);
 }
 function touchSpikes(player,spikes){
-	//console.log("player.body.x:"+player.body.x);
-	//console.log("player.body.x:"+player.body.x);
-	//console.log("player.x:"+player.x);
-	if (level==5){	
-		loadLevel(level);//this level works for complete reload.
-	} else {
-		player.body.y=savedPlayerY;
-		player.body.x=savedPlayerX;
-		machine.body.y=savedMachineY;
-		machine.body.x=savedMachineX;
-	}
-	//loadLevel(level); //for testing. should be loadLevel(level);
+	//tutorialText.text="ouch";
+	loadLevel(level); //for testing. should be loadLevel(level);
 }
 function touchSwitches(machine,switches){
 	if (level==5&&!switchTriggered) {
@@ -261,45 +235,6 @@ function touchSwitches(machine,switches){
 			s.body.x -=200;
 		}, this);
 		switchTriggered=false;
-	}
-	else if (level==7&&!switchTriggered) {
-		greyDoors.forEach(function(s) {
-			s.body.y +=192;
-		}, this);
-		switchTriggered=true;
-	} else if (level==7&&switchTriggered) {
-		greyDoors.forEach(function(s) {
-			s.body.y -=192;
-		}, this);
-		switchTriggered=false;
-	}
-}
-function playerTouchSwitches(player,switches){
-	if (game.time.now > toggleTime) {
-		if (level==7&&!switchTriggered) {
-			greyDoors.forEach(function(s) {
-				s.body.y +=192;
-			}, this);
-			switchTriggered=true;
-		} else if (level==7&&switchTriggered) {
-			greyDoors.forEach(function(s) {
-				s.body.y -=192;
-			}, this);
-			switchTriggered=false;
-		} else if (level==8&&!switchTriggered) {
-			console.log("level==8&&!switchTriggered");
-			greyDoors.forEach(function(s) {
-				s.exists=false;
-			}, this);
-			switchTriggered=true;
-		} else if (level==8&&switchTriggered) {
-			console.log("level==8&&switchTriggered");
-			greyDoors.forEach(function(s) {
-				s.exists.true;
-			}, this);
-			switchTriggered=false;
-		}
-		toggleTime=game.time.now+800;//eliminate constantly toggling when she's next to a switch.
 	}
 }
 function inputCode (player, machine){ //player can start programming when she's close to Ivo
@@ -317,13 +252,13 @@ function clickButtonAdd () { //No point in showing the commands menu unless ther
 		ivoMenuButtons.repeat.visible=true;
 		ivoMenuButtons.wait.visible=true;
 		ivoMenuButtons.reverseGravity.visible=true;
-	} //else if (exitArrow.getAt(0).exists){
-		//tutorialText.text="Head out";
-	//} else {
-		//tutorialText.text="grab that card first";
-	//}
+	} else if (exitArrow.getAt(0).exists){
+		tutorialText.text="Head out";
+	} else {
+		tutorialText.text="grab that card first";
+	}
 }
-/*function hideCommandsMenu(){
+function hideCommandsMenu(){
 	ivoCommandsBackground.visible=false;
 	ivoMenuButtons.moveLeft.visible=false;
 	ivoMenuButtons.moveRight.visible=false;
@@ -332,7 +267,7 @@ function clickButtonAdd () { //No point in showing the commands menu unless ther
 	ivoMenuButtons.repeat.visible=false;
 	ivoMenuButtons.wait.visible=false;
 	ivoMenuButtons.reverseGravity.visible=false;
-}*/
+}
 function clickEject (){
 	if (spentPunchcards>0){
 		collectedPunchcards+=spentPunchcards;
@@ -345,15 +280,9 @@ function clickEject (){
 	}
 }
 function clickExecute (){
-	saved=true;
-	if (readPosition==0) {//if the player clicked execute, save positions for reload on death
-		console.log("readpositon:"+readPosition+"player clicked execute");
-		savedPlayerY=player.body.y;
-		savedPlayerX=player.body.x;
-		savedMachineY=machine.body.y;
-		savedMachineX=machine.body.x;
-	}
-	
+	//if (beginQueue){
+		//readPosition=0;//fix this stuff up
+	//}
 	if (commandQueue[readPosition]=="Open blue door") {//testing: get this working first.
 		blueDoors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
@@ -404,7 +333,8 @@ function clickExecute (){
 		
 	} else if (commandQueue[readPosition]=="Reverse Ada's gravity") {//testing: get this working first.
 		hideMenu();
-		console.log("gravity reversed");
+		//gravity=-1050;//for testing. should be gravity=(-gravity);
+		//gravity=-gravity;
 		player.body.gravity.y=-player.body.gravity.y;
 		player.scale.y = -player.scale.y;
 		if (commandQueue.length>readPosition+1){
@@ -415,70 +345,57 @@ function clickExecute (){
 			readPosition=0;
 		}
 	}
-	
 	//if (commandQueue.length>queuePosition+1){
 		//beginQueue=false;
 		//clickExecute();
 	//}
 }
 function clickMoveRight(){
-	if (collectedPunchcards>0){
-		commandQueue[writePosition]="Move right";
-		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-		spendCard();
-	}
+	hideCommandsMenu();
+	commandQueue[writePosition]="Move right";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+	spendCard();
 }
 function clickMoveLeft(){
-	if (collectedPunchcards>0){
-		commandQueue[writePosition]="Move left";
-		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-		spendCard();
-	}
+	hideCommandsMenu();
+	commandQueue[writePosition]="Move left";
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+	spendCard();
 }
 function clickBlueDoor (){
-	if (collectedPunchcards>0){
-		commandQueue[writePosition]="Open blue door";
-		//hidecommandsmenu();
-		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-		spendCard();
-	}
+	
+	commandQueue[writePosition]="Open blue door";
+	hideCommandsMenu();
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+	spendCard();
 }
 function clickRepeat (){
 	
 	commandQueue[0]="Repeat";
-	//hidecommandsmenu();
+	hideCommandsMenu();
 	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[0];
 	spendCard();
 }
 function clickWait (){
-	if (collectedPunchcards>0){
-		commandQueue[writePosition]="Wait 5 seconds";
-		//hidecommandsmenu();
-		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-		spendCard();
-	}
+	
+	commandQueue[writePosition]="Wait 5 seconds";
+	hideCommandsMenu();
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+	spendCard();
 }
 function clickGravity (){
-	if (collectedPunchcards>0){
-		commandQueue[writePosition]="Reverse Ada's gravity";
-		//hidecommandsmenu();
-		ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
-		spendCard();
-	}
+	
+	commandQueue[writePosition]="Reverse Ada's gravity";
+	hideCommandsMenu();
+	ivoMenuButtons.codeText.text+=commandQueue.length+": "+commandQueue[writePosition]+"\n";
+	spendCard();
 }
 function showMenu() {
 	ivoMenu.visible=true;
-	//ivoMenuButtons.addCommand.visible=true;
+	ivoMenuButtons.addCommand.visible=true;
 	ivoMenuButtons.exit.visible=true;
 	ivoMenuButtons.execute.visible=true;
 	ivoMenuButtons.codeText.visible=true;
-	ivoMenuButtons.moveLeft.visible=true;
-		ivoMenuButtons.moveRight.visible=true;
-		ivoMenuButtons.blueDoor.visible=true;
-		//ivoMenuButtons.yellowDoor.visible=true;
-		//ivoMenuButtons.repeat.visible=true;
-		ivoMenuButtons.wait.visible=true;
-		ivoMenuButtons.reverseGravity.visible=true;
 }
 function hideMenu() {
 	ivoMenu.visible=false;
@@ -486,13 +403,6 @@ function hideMenu() {
 	ivoMenuButtons.exit.visible=false;
 	ivoMenuButtons.execute.visible=false;
 	ivoMenuButtons.codeText.visible=false;
-	ivoMenuButtons.moveLeft.visible=false;
-		ivoMenuButtons.moveRight.visible=false;
-		ivoMenuButtons.blueDoor.visible=false;
-		//ivoMenuButtons.yellowDoor.visible=false;
-		//ivoMenuButtons.repeat.visible=false;
-		ivoMenuButtons.wait.visible=false;
-		ivoMenuButtons.reverseGravity.visible=false;
 }
 function loadLevel(level) {	
 	if (layer) {
@@ -534,9 +444,6 @@ function loadLevel(level) {
 	if (punchcardText){
 		punchcardText.destroy();
 	}
-	//if (map){
-		//map.destroy();
-	//}
 	
 	//var codeText;
 	//var timerText;
@@ -550,41 +457,14 @@ function loadLevel(level) {
 	    font: '40px Helvetica',
 	    fill: '#999'
 		});
-		game.stage.backgroundColor = '#a4cfe7';
-	}
-	else if (level==3){
-		game.stage.backgroundColor = '#5894cd';
-	}
-	else if (level==4){
-		game.stage.backgroundColor = '#4381bb';
-	}
-	else if (level==5){
-		game.stage.backgroundColor = '#3370aa';
-	}
-	else if (level==6){
-		game.stage.backgroundColor = '#175a99';
 	}
 	
-	else if (level==7){
-		game.stage.backgroundColor = '#094782';
-	}
-	else if (level==8){
-		game.stage.backgroundColor = '#0b3965';
-	}
-	else if (level==9){
-		game.stage.backgroundColor = '#094782';
-	}
-	//saved=false;always saved as a work aorund for reloading current level glitch
-	collectedPunchcards = 0;
+	collectedPunchcards = 5;
 	spentPunchcards=0;
-		//reloading a previously loaded level with this stuff causes glitches, repeatedly fall 
-		//through floor
-		map = game.add.tilemap('level-'+level);
-		map.addTilesetImage('ada-tileset');
-		layer = map.createLayer('Tile Layer 1');
-		layer.resizeWorld();
-		
-	
+	map = game.add.tilemap('level-'+level);
+	map.addTilesetImage('ada-tileset');
+	layer = map.createLayer('Tile Layer 1');
+	layer.resizeWorld();
 	punchcards = game.add.group();
     punchcards.enableBody = true;
     map.createFromObjects('entities', 5, 'punchcard', 0, true, false, punchcards);
@@ -616,8 +496,6 @@ function loadLevel(level) {
 	map.createFromObjects('entities', 7, 'spike', 0, true, false, spikes);
 	spikes.forEach(function(s) {
 		s.body.immovable = true;
-		s.animations.add('flame');		
-    	s.animations.play('flame', 15, true);
 	}, this);
 	switches=game.add.group();
 	switches.enableBody=true;
@@ -627,7 +505,7 @@ function loadLevel(level) {
 	}, this);
 	switchTriggered=false;
 	map.setCollisionBetween(1, 4);
-	player = game.add.sprite(96, 300, 'ada');
+	player = game.add.sprite(96, 180, 'ada');
 	game.physics.arcade.enable(player);
 	player.body.velocity.x=0;
 	player.body.velocity.y=0;
@@ -636,32 +514,18 @@ function loadLevel(level) {
 	player.body.collideWorldBounds = true;
 	player.body.maxVelocity.y = 500;//keep her from falling through tiles
 	player.anchor.setTo(.5, .5); //so it flips around its middle
- 	player.animations.add('forward', [1,2,3,4], 10, true);
+ 	player.animations.add('forward', [1,2,3], 10, true);
 	game.camera.follow(player);
 	//player.bringToTop();//sprite was hiding behind new tilemaps being created each level.
 	//player.position.setTo(32,200);
-	if (level==3||level==5) {
-		machine = game.add.sprite(214, 318, 'ivo');
-	} else if (level==4){
-		machine = game.add.sprite(214, 250, 'ivo');
-	}  else if (level==7){
-		machine = game.add.sprite(350, 350, 'ivo');
-	} else if (level==8) {
-		machine = game.add.sprite(350, 350, 'ivo');
-	} else if (level==9) {
-		machine = game.add.sprite(214, 220, 'ivo');
-	} else {
-		machine = game.add.sprite(214, 350, 'ivo');
-	}
+	machine = game.add.sprite(214, 180, 'ivo');
 	game.physics.arcade.enable(machine);
 	machine.body.collideWorldBounds = true;
 	machine.body.immovable = false;
 	machine.body.gravity.y = gravity-200;//ensures Ada will stick to the top of Ivo while they fall, she has more gravity.
 	//machine.body.maxVelocity.x=50;<-slow Ivo is fun to play with. Special level?
 	machine.body.maxVelocity.y=150;//Hack because Ada's gravity pushed Ivo down too fast in mid air.
-	machine.anchor.setTo(.5,.5);//for calculating distance between player and Ivo
-	machine.body.velocity.x=0;
-	machine.body.velocity.y=0;
+	machine.anchor.setTo(0.25,0);//for calculating distance between player and Ivo
 	//setting up the menu and submenu for Ivo but not displaying until we need to.
 	//ordered so that the later images are on top
 	ivoMenu = game.add.sprite(0,0,'punchcardMenu');
@@ -670,37 +534,37 @@ function loadLevel(level) {
 	ivoMenuButtons.addCommand=game.add.button(15, 5, 'menuButtonAdd', clickButtonAdd);
 	ivoMenuButtons.addCommand.visible=false;
 	ivoMenuButtons.addCommand.fixedToCamera=true;
-	ivoMenuButtons.exit=game.add.button(35,467,'menuEject', clickEject);//fix up exit
+	ivoMenuButtons.exit=game.add.button(15,400,'menuEject', clickEject);
 	ivoMenuButtons.exit.visible=false;
 	ivoMenuButtons.exit.fixedToCamera=true;
-	ivoMenuButtons.execute=game.add.button(35,380,'menuExecute', clickExecute);
+	ivoMenuButtons.execute=game.add.button(15,260,'menuExecute', clickExecute);
 	ivoMenuButtons.execute.visible=false;
 	ivoMenuButtons.execute.fixedToCamera=true;
-	ivoMenuButtons.codeText = game.add.text(35,260,'', {font:'20px Helvetica', fill: '#444' });
+	ivoMenuButtons.codeText = game.add.text(10,140,'code\n', {font:'20px Helvetica', fill: '#444' });
 	ivoMenuButtons.codeText.visible=false;
 	ivoMenuButtons.codeText.fixedToCamera=true;
 	ivoCommandsBackground = game.add.sprite(40,0,'menuCommands');
 	ivoCommandsBackground.visible=false;
 	ivoCommandsBackground.fixedToCamera=true;
-	ivoMenuButtons.moveLeft=game.add.button(35,10,'menuMoveLeft', clickMoveLeft);
+	ivoMenuButtons.moveLeft=game.add.button(45,5,'menuMoveLeft', clickMoveLeft);
 	ivoMenuButtons.moveLeft.visible=false;
 	ivoMenuButtons.moveLeft.fixedToCamera=true;
-	ivoMenuButtons.moveRight=game.add.button(35,60,'menuMoveRight', clickMoveRight);
+	ivoMenuButtons.moveRight=game.add.button(45,75,'menuMoveRight', clickMoveRight);
 	ivoMenuButtons.moveRight.visible=false;
 	ivoMenuButtons.moveRight.fixedToCamera=true;
-	ivoMenuButtons.blueDoor=game.add.button(35,110,'menuBlueDoor',clickBlueDoor);
+	ivoMenuButtons.blueDoor=game.add.button(45,145,'menuBlueDoor',clickBlueDoor);
 	ivoMenuButtons.blueDoor.visible=false;
 	ivoMenuButtons.blueDoor.fixedToCamera=true;
-	ivoMenuButtons.yellowDoor=game.add.button(80,215,'menuYellowDoor');
+	ivoMenuButtons.yellowDoor=game.add.button(45,215,'menuYellowDoor');
 	ivoMenuButtons.yellowDoor.visible=false;
 	ivoMenuButtons.yellowDoor.fixedToCamera=true;
-	ivoMenuButtons.repeat=game.add.button(80,285,'menuRepeat',clickRepeat);
+	ivoMenuButtons.repeat=game.add.button(45,285,'menuRepeat',clickRepeat);
 	ivoMenuButtons.repeat.visible=false;
 	ivoMenuButtons.repeat.fixedToCamera=true;
-	ivoMenuButtons.wait=game.add.button(35,160,'menuWait',clickWait);
+	ivoMenuButtons.wait=game.add.button(45,355,'menuWait',clickWait);
 	ivoMenuButtons.wait.visible=false;
 	ivoMenuButtons.wait.fixedToCamera=true;
-	ivoMenuButtons.reverseGravity=game.add.button(35,210,'menuGravity',clickGravity);
+	ivoMenuButtons.reverseGravity=game.add.button(45,425,'menuGravity',clickGravity);
 	ivoMenuButtons.reverseGravity.visible=false;
 	ivoMenuButtons.reverseGravity.fixedToCamera=true;
 	timerText = game.add.text(460, 16, '', { fontSize: '32px', fill: '#000' });
@@ -714,10 +578,6 @@ function loadLevel(level) {
 		blueDoors.getAt(0).exists=false;//for now, this is where we have our exit door stored in the group.
 		exitArrow.getAt(0).exists=true;
 	}
-	savedPlayerY=player.body.y;
-	savedPlayerX=player.body.x;
-	savedMachineY=machine.body.y;
-	savedMachineX=machine.body.x;
 
 }
 function spendCard(){
